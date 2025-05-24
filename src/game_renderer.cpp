@@ -1,4 +1,5 @@
 #include "game_renderer.hpp"
+#include <iostream>
 
 GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr_,
                            std::shared_ptr<SDL_Renderer> renderer_ptr,
@@ -8,8 +9,8 @@ GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr_,
       game_runner_(game_runner) {}
 
 void GameRenderer::start() {
-  uint32_t size_x;
-  uint32_t size_y;
+  uint64_t size_x;
+  uint64_t size_y;
   {
     auto field = state_ptr_->getField().getField();
     size_x = field.size();
@@ -28,8 +29,8 @@ void GameRenderer::start() {
   }
 }
 
-void GameRenderer::handleEvents_(uint32_t& size_x,
-                                 uint32_t& size_y,
+void GameRenderer::handleEvents_(uint64_t& size_x,
+                                 uint64_t& size_y,
                                  bool& running,
                                  bool& paused) {
   SDL_Event event;
@@ -42,8 +43,8 @@ void GameRenderer::handleEvents_(uint32_t& size_x,
       SDL_GetMouseState(&mouseX, &mouseY);
 
       // Convert mouse position to grid coordinates
-      int gridX = mouseX / kCellPixels;
-      int gridY = mouseY / kCellPixels;
+      uint32_t gridX = static_cast<uint32_t>(mouseX / kCellPixels);
+      uint32_t gridY = static_cast<uint32_t>(mouseY / kCellPixels);
 
       // Toggle the cell state
       if (gridX >= 0 && gridX < size_x && gridY >= 0 && gridY < size_y) {

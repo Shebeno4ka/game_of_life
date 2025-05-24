@@ -9,7 +9,7 @@
 
 using namespace std::chrono_literals;
 
-const int kCellPixels = 10;
+const uint16_t kCellPixels = 10;
 const SDL_Color kBackgroundColor = {0, 0, 0, 255};
 const SDL_Color kCellColor = {255, 255, 255, 255};
 
@@ -26,8 +26,8 @@ class GameRenderer {
   void start();
 
  private:
-  void handleEvents_(uint32_t& size_x,
-                     uint32_t& size_y,
+  void handleEvents_(uint64_t& size_x,
+                     uint64_t& size_y,
                      bool& running,
                      bool& paused);
   void render_();

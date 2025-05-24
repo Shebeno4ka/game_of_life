@@ -56,7 +56,7 @@ static inline std::optional<Options> ParseCommandLineOptions(int argc,
     opts.size_x = static_cast<uint32_t>(std::stoul(argv[1]));
     opts.size_y = static_cast<uint32_t>(std::stoul(argv[2]));
     opts.updates_per_second =
-        (argc > 3) ? std::stoul(argv[3]) : kDefaultGameSpeed;
+        (argc > 3) ? static_cast<uint32_t>(std::stoul(argv[3])) : kDefaultGameSpeed;
   } catch (const std::invalid_argument& e) {
     throw InvalidArgumentException("Arguments must be integers");
   } catch (const std::out_of_range& e) {

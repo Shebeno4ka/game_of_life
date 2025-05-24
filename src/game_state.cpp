@@ -42,8 +42,8 @@ void GameState::doUpdate_(const field_t& field_to_read,
     for (uint32_t j = 0; j < field_to_read[i].size(); ++j) {
       uint32_t alive_neighbours = 0;
       for (const auto& offset : neighbours_offsets) {
-        int32_t ni = i + offset.first;
-        int32_t nj = j + offset.second;
+        uint32_t ni = i + offset.first;
+        uint32_t nj = j + offset.second;
         if (isValidCoord_(ni, nj)) {
           alive_neighbours += field_to_read[ni][nj];
         }
@@ -57,6 +57,6 @@ void GameState::doUpdate_(const field_t& field_to_read,
   }
 }
 
-bool GameState::isValidCoord_(int32_t i, int32_t j) {
-  return i >= 0 && i < field1_.size() && j >= 0 && j < field2_[0].size();
+bool GameState::isValidCoord_(uint32_t i, uint32_t j) {
+  return i < field1_.size() && j < field2_[0].size();
 }
