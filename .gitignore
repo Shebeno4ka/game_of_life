@@ -1,0 +1,60 @@
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+install_manifest.txt
+Testing/
+_deps/
+
+# Build directories
+build/
+Build/
+cmake-build*/
+out/
+
+# Compiled Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Generated files
+Makefile
+*.make
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln
+*.vcxproj*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+.cache/
