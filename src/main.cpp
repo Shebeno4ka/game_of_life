@@ -18,9 +18,10 @@ int startGame(Options& opts) {
 
   uint32_t window_side_size = opts.size_y * kCellPixels;
 
-  auto sdl_window = SDL_CreateWindow("Game of Life", SDL_WINDOWPOS_CENTERED,
-                                     SDL_WINDOWPOS_CENTERED, static_cast<int>(window_side_size),
-                                     static_cast<int>(window_side_size), SDL_WINDOW_SHOWN);
+  auto sdl_window = SDL_CreateWindow(
+      "Game of Life", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      static_cast<int>(window_side_size), static_cast<int>(window_side_size),
+      SDL_WINDOW_SHOWN);
   if (!sdl_window) {
     std::cerr << "Window creation error: " << SDL_GetError() << std::endl;
     return 1;
@@ -50,8 +51,6 @@ int startGame(Options& opts) {
 }
 
 int main(int argc, char* argv[]) {
-  Options default_opts{100, 100, 10};
-  return startGame(default_opts);
   std::optional<Options> opts;
 
   try {
