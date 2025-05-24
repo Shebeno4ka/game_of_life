@@ -1,5 +1,4 @@
 #include "game_renderer.hpp"
-#include <iostream>
 
 GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr_,
                            std::shared_ptr<SDL_Renderer> renderer_ptr,
