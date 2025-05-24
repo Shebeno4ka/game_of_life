@@ -16,10 +16,10 @@ class GameState {
   using field_t = std::vector<std::vector<bool>>;
 
  private:
-  field_t* first_field_ptr_;
-  field_t* second_field_ptr_;
   field_t field1_;
   field_t field2_;
+  field_t* first_field_ptr_;
+  field_t* second_field_ptr_;
 
  public:
   GameState(uint32_t height, uint32_t width);
@@ -32,5 +32,5 @@ class GameState {
 
  private:
   void doUpdate_(const field_t& field_to_read, field_t& field_to_write);
-  bool isValidCoord_(int32_t i, int32_t j);
+  bool isValidCoord_(uint32_t i, uint32_t j);
 };
