@@ -21,7 +21,7 @@ const char kHelpText[] =
     "  game_of_life 50 40      Run with a 50x40 grid at default speed\n"
     "  game_of_life 80 60 3    Run with an 80x60 grid at speed 3\n";
 
-const int kDefaultGameSpeed = 1;
+const int kDefaultGameSpeed = 8;
 
 struct Options {
   uint32_t size_x;
@@ -55,8 +55,9 @@ static inline std::optional<Options> ParseCommandLineOptions(int argc,
   try {
     opts.size_x = static_cast<uint32_t>(std::stoul(argv[1]));
     opts.size_y = static_cast<uint32_t>(std::stoul(argv[2]));
-    opts.updates_per_second =
-        (argc > 3) ? static_cast<uint32_t>(std::stoul(argv[3])) : kDefaultGameSpeed;
+    opts.updates_per_second = (argc > 3)
+                                  ? static_cast<uint32_t>(std::stoul(argv[3]))
+                                  : kDefaultGameSpeed;
   } catch (const std::invalid_argument& e) {
     throw InvalidArgumentException("Arguments must be integers");
   } catch (const std::out_of_range& e) {
