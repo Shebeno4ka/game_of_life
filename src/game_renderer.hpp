@@ -26,8 +26,8 @@ class GameRenderer {
   void start();
 
  private:
-  void handleEvents_(uint64_t& size_x,
-                     uint64_t& size_y,
+  void handleEvents_(uint64_t size_x,
+                     uint64_t size_y,
                      bool& running,
                      bool& paused);
   void render_();
