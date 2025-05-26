@@ -47,6 +47,7 @@ int startGame(Options &opts) {
   game_runner.start();
   game_renderer.start();
 
+  SDL_Quit();
   return 0;
 }
 
