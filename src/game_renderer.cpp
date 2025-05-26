@@ -46,7 +46,7 @@ void GameRenderer::handleEvents_(uint64_t size_x,
       uint32_t gridY = static_cast<uint32_t>(mouseY / kCellPixels);
 
       // Toggle the cell state
-      if (gridX >= 0 && gridX < size_x && gridY >= 0 && gridY < size_y) {
+      if (gridX < size_x && gridY < size_y) {
         state_ptr_->toggleCell(gridX, gridY);
       }
     } else if (event.type == SDL_KEYDOWN) {
