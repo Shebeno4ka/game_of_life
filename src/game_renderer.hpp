@@ -1,8 +1,8 @@
 #pragma once
 
-#include <SDL_events.h>
-#include <SDL_pixels.h>
-#include <SDL_render.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_render.h>
 
 #include "game_runner.hpp"
 #include "thread_safe_game_state.hpp"
@@ -26,9 +26,7 @@ class GameRenderer {
   void start();
 
  private:
-  void handleEvents_(uint64_t size_x,
-                     uint64_t size_y,
-                     bool& running,
+  void handleEvents_(uint64_t size_x, uint64_t size_y, bool& running,
                      bool& paused);
   void render_();
   void drawField_();

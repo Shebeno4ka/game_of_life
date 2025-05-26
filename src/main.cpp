@@ -1,6 +1,5 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL_render.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_render.h>
 
 #include <iostream>
 #include <memory>
@@ -9,35 +8,36 @@
 #include "game_renderer.hpp"
 #include "game_runner.hpp"
 #include "game_state.hpp"
-#include "sdl_context.hpp"
 
 using sdl_window_ptr = std::shared_ptr<SDL_Window>;
 
-int startGame(Options& opts) {
-  SDLContext::GetInstance();
+int startGame(Options &opts) {
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
+    std::cerr << "SDL init failed: " << SDL_GetError() << std::endl;
+    return 1;
+  }
 
   uint32_t window_side_size = opts.size_y * kCellPixels;
 
   auto sdl_window = SDL_CreateWindow(
-      "Game of Life", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      "Game of Life",
       static_cast<int>(window_side_size), static_cast<int>(window_side_size),
-      SDL_WINDOW_SHOWN);
+      SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (!sdl_window) {
     std::cerr << "Window creation error: " << SDL_GetError() << std::endl;
     return 1;
   }
   std::shared_ptr<SDL_Window> window_ptr(sdl_window, &SDL_DestroyWindow);
 
-  SDL_Renderer* renderer =
-      SDL_CreateRenderer(window_ptr.get(), -1, SDL_RENDERER_ACCELERATED);
+  SDL_Renderer *renderer =
+      SDL_CreateRenderer(window_ptr.get(), nullptr);
   if (!renderer) {
     std::cerr << "Renderer creation error: " << SDL_GetError() << std::endl;
     return 1;
   }
   std::shared_ptr<SDL_Renderer> renderer_ptr(renderer, &SDL_DestroyRenderer);
 
-  std::vector<std::vector<bool>> field(opts.size_y,
-                                       std::vector<bool>(opts.size_x, false));
+  std::vector field(opts.size_y, std::vector<bool>(opts.size_x, false));
 
   auto state = std::make_shared<ThreadSafeGameState>(
       std::make_shared<GameState>(&field));
