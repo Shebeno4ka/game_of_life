@@ -28,8 +28,8 @@ void GameRenderer::start() {
   }
 }
 
-void GameRenderer::handleEvents_(uint64_t& size_x,
-                                 uint64_t& size_y,
+void GameRenderer::handleEvents_(uint64_t size_x,
+                                 uint64_t size_y,
                                  bool& running,
                                  bool& paused) {
   SDL_Event event;
