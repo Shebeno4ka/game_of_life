@@ -19,7 +19,7 @@ class GameRenderer {
   GameRunner& game_runner_;
 
  public:
-  GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr_,
+  GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
                std::shared_ptr<SDL_Renderer> renderer_ptr,
                GameRunner& game_runner);
 

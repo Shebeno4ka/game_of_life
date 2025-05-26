@@ -1,9 +1,9 @@
 #include "game_renderer.hpp"
 
-GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr_,
+GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
                            std::shared_ptr<SDL_Renderer> renderer_ptr,
                            GameRunner& game_runner)
-    : state_ptr_(state_ptr_),
+    : state_ptr_(state_ptr),
       renderer_ptr_(renderer_ptr),
       game_runner_(game_runner) {}
 
