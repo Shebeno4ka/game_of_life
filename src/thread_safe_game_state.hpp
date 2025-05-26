@@ -18,12 +18,12 @@ class ThreadSafeGameState {
     FieldGuard(std::shared_mutex& mutex,
                const std::shared_ptr<GameState>& state);
 
-    const GameState::field_t& getField() const;
+    [[nodiscard]] const GameState::field_t& getField() const;
   };
 
   explicit ThreadSafeGameState(std::shared_ptr<GameState> state);
   void update();
   void toggleCell(uint32_t i, uint32_t j);
-  const FieldGuard getField() const;
+  [[nodiscard]] FieldGuard getField() const;
   void reset();
 };

@@ -1,10 +1,12 @@
 #include "game_renderer.hpp"
 
+#include <utility>
+
 GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
                            std::shared_ptr<SDL_Renderer> renderer_ptr,
                            GameRunner& game_runner)
-    : state_ptr_(state_ptr),
-      renderer_ptr_(renderer_ptr),
+    : state_ptr_(std::move(state_ptr)),
+      renderer_ptr_(std::move(renderer_ptr)),
       game_runner_(game_runner) {}
 
 void GameRenderer::start() {
@@ -28,47 +30,54 @@ void GameRenderer::start() {
   }
 }
 
-void GameRenderer::handleEvents_(uint64_t size_x,
-                                 uint64_t size_y,
-                                 bool& running,
-                                 bool& paused) {
+void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
+                                 bool& running, bool& paused) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_QUIT) {
-      game_runner_.stop();
-      running = false;
-    } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-      int mouseX, mouseY;
-      SDL_GetMouseState(&mouseX, &mouseY);
+    switch (event.type) {
+      case SDL_EVENT_QUIT:
+        game_runner_.stop();
+        running = false;
+        break;
 
-      // Convert mouse position to grid coordinates
-      uint32_t gridX = static_cast<uint32_t>(mouseX / kCellPixels);
-      uint32_t gridY = static_cast<uint32_t>(mouseY / kCellPixels);
+      case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+        float mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
 
-      // Toggle the cell state
-      if (gridX < size_x && gridY < size_y) {
-        state_ptr_->toggleCell(gridX, gridY);
+        auto gridX = static_cast<uint32_t>(mouseX / kCellPixels);
+        auto gridY = static_cast<uint32_t>(mouseY / kCellPixels);
+
+        if (gridX < size_x && gridY < size_y) {
+          state_ptr_->toggleCell(gridX, gridY);
+        }
+        break;
       }
-    } else if (event.type == SDL_KEYDOWN) {
-      switch (event.key.keysym.sym) {
-        case SDLK_ESCAPE:
-          game_runner_.stop();
-          running = false;
-          break;
-        case SDLK_SPACE:
-          if (paused) {
-            game_runner_.resume();
-          } else {
-            game_runner_.pause();
-          }
-          paused = !paused;
-          break;
-        case SDLK_r:
-          state_ptr_->reset();  // Reset the game state
-          break;
-        default:
-          break;
+
+      case SDL_EVENT_KEY_DOWN: {
+        switch (event.key.key) {
+          case SDLK_ESCAPE:
+            game_runner_.stop();
+            running = false;
+            break;
+          case SDLK_SPACE:
+            if (paused) {
+              game_runner_.resume();
+            } else {
+              game_runner_.pause();
+            }
+            paused = !paused;
+            break;
+          case SDLK_R:
+            state_ptr_->reset();
+            break;
+          default:
+            break;
+        }
+        break;
       }
+
+      default:
+        break;
     }
   }
 }
@@ -92,10 +101,12 @@ void GameRenderer::drawField_() {
       if (field[i][j]) {
         SDL_SetRenderDrawColor(renderer_ptr_.get(), kCellColor.r, kCellColor.g,
                                kCellColor.b, kCellColor.a);
-        SDL_Rect rect{static_cast<int>(j * kCellPixels),
-                      static_cast<int>(i * kCellPixels), kCellPixels,
-                      kCellPixels};
-        SDL_RenderFillRect(renderer_ptr_.get(), &rect);
+        const SDL_Rect rect{static_cast<int>(kCellPixels * j),
+                            static_cast<int>(i * kCellPixels), kCellPixels,
+                            kCellPixels};
+        SDL_FRect frect{};
+        SDL_RectToFRect(&rect, &frect);
+        SDL_RenderFillRect(renderer_ptr_.get(), &frect);
       }
     }
   }

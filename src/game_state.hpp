@@ -23,7 +23,7 @@ class GameState {
 
  public:
   GameState(uint32_t height, uint32_t width);
-  GameState(field_t* field);
+  explicit GameState(field_t* field);
 
   void update();
   void toggleCell(uint32_t i, uint32_t j);

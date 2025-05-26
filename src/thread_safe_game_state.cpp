@@ -1,8 +1,7 @@
 #include "thread_safe_game_state.hpp"
 
 ThreadSafeGameState::FieldGuard::FieldGuard(
-    std::shared_mutex& mutex,
-    const std::shared_ptr<GameState>& state)
+    std::shared_mutex& mutex, const std::shared_ptr<GameState>& state)
     : lock_(mutex), field_(state->getField()) {}
 
 ThreadSafeGameState::ThreadSafeGameState(std::shared_ptr<GameState> state)
@@ -22,8 +21,8 @@ void ThreadSafeGameState::toggleCell(uint32_t i, uint32_t j) {
   state_->toggleCell(i, j);
 }
 
-const ThreadSafeGameState::FieldGuard ThreadSafeGameState::getField() const {
-  return FieldGuard(mutex_, state_);
+ThreadSafeGameState::FieldGuard ThreadSafeGameState::getField() const {
+  return FieldGuard{mutex_, state_};
 }
 
 void ThreadSafeGameState::reset() {

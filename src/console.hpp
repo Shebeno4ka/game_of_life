@@ -3,9 +3,10 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+
 #include "exceptions.hpp"
 
-const char kHelpText[] =
+constexpr char kHelpText[] =
     "game_of_life - Game of Life cellular automaton simulation\n\n"
     "Usage: game_of_life SIZE_X SIZE_Y [SPEED]\n\n"
     "Game of Life simulates cells that live or die based on their "
@@ -21,7 +22,7 @@ const char kHelpText[] =
     "  game_of_life 50 40      Run with a 50x40 grid at default speed\n"
     "  game_of_life 80 60 3    Run with an 80x60 grid at speed 3\n";
 
-const int kDefaultGameSpeed = 8;
+constexpr int kDefaultGameSpeed = 8;
 
 struct Options {
   uint32_t size_x;
@@ -39,9 +40,8 @@ struct Options {
  * @throws InvalidArgumentException If arguments are invalid, missing, or in
  * wrong format
  */
-static inline std::optional<Options> ParseCommandLineOptions(int argc,
-                                                             char* argv[]) {
-  Options opts;
+static std::optional<Options> ParseCommandLineOptions(int argc, char* argv[]) {
+  Options opts{};
 
   if (argc == 2 &&
       (std::string(argv[1]) == "-h" || std::string(argv[1]) == "--help")) {

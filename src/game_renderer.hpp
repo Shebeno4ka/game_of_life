@@ -9,9 +9,9 @@
 
 using namespace std::chrono_literals;
 
-const uint16_t kCellPixels = 10;
-const SDL_Color kBackgroundColor = {0, 0, 0, 255};
-const SDL_Color kCellColor = {255, 255, 255, 255};
+constexpr uint16_t kCellPixels = 10;
+constexpr SDL_Color kBackgroundColor = {0, 0, 0, 255};
+constexpr SDL_Color kCellColor = {255, 255, 255, 255};
 
 class GameRenderer {
   std::shared_ptr<ThreadSafeGameState> state_ptr_;
