@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SDL_render.h>
-
 #include <atomic>
 #include <condition_variable>
 #include <memory>
@@ -15,9 +13,9 @@ class GameRunner {
   std::shared_ptr<ThreadSafeGameState> state_;
   const uint32_t updates_per_second_;
 
+  std::atomic_bool running_;
+  std::atomic_bool paused_;
   std::thread game_thread_;
-  std::atomic_bool running_{false};
-  std::atomic_bool paused_{true};
   mutable std::mutex pause_mutex_;
   mutable std::condition_variable pause_cond_var_;
 
