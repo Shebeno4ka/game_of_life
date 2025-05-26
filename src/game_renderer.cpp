@@ -85,11 +85,11 @@ void GameRenderer::render_() {
 }
 
 void GameRenderer::drawField_() {
-  const auto& field = state_ptr_->getField();
+  const auto& field = state_ptr_->getField().getField();
 
-  for (uint32_t i = 0; i < field.getField().size(); ++i) {
-    for (uint32_t j = 0; j < field.getField()[i].size(); ++j) {
-      if (field.getField()[i][j]) {
+  for (uint32_t i = 0; i < field.size(); ++i) {
+    for (uint32_t j = 0; j < field[i].size(); ++j) {
+      if (field[i][j]) {
         SDL_SetRenderDrawColor(renderer_ptr_.get(), kCellColor.r, kCellColor.g,
                                kCellColor.b, kCellColor.a);
         SDL_Rect rect{static_cast<int>(j * kCellPixels),
