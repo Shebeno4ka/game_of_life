@@ -10,7 +10,7 @@
 using namespace std::chrono_literals;
 
 class GameRunner {
-  std::shared_ptr<ThreadSafeGameState> state_;
+  std::shared_ptr<ThreadSafeGameState> state_thread_guard_ptr_;
   const uint32_t updates_per_second_;
 
   std::atomic_bool running_;
@@ -21,7 +21,7 @@ class GameRunner {
 
  public:
   GameRunner(std::shared_ptr<ThreadSafeGameState> state,
-             const uint32_t updates_per_second);
+             uint32_t updates_per_second);
   GameRunner(const GameRunner&) = delete;
   GameRunner& operator=(const GameRunner&) = delete;
   ~GameRunner();

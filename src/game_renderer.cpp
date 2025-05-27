@@ -5,7 +5,7 @@
 GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
                            std::shared_ptr<SDL_Renderer> renderer_ptr,
                            GameRunner& game_runner)
-    : state_ptr_(std::move(state_ptr)),
+    : state_thread_guard_ptr_(std::move(state_ptr)),
       renderer_ptr_(std::move(renderer_ptr)),
       game_runner_(game_runner) {}
 
@@ -13,9 +13,10 @@ void GameRenderer::start() {
   uint64_t size_x;
   uint64_t size_y;
   {
-    auto field = state_ptr_->getField().getField();
-    size_x = field.size();
-    size_y = field[0].size();
+    auto state_guard = state_thread_guard_ptr_->getStateGuard();
+    const auto& game_state = state_guard.get();
+    size_x = game_state.getField().size();
+    size_y = game_state.getField()[0].size();
   }
 
   bool running = true;
@@ -25,8 +26,6 @@ void GameRenderer::start() {
     handleEvents_(size_x, size_y, running, paused);
 
     render_();
-
-    std::this_thread::sleep_for(10ms);
   }
 }
 
@@ -48,7 +47,9 @@ void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
         auto gridY = static_cast<uint32_t>(mouseY / kCellPixels);
 
         if (gridX < size_x && gridY < size_y) {
-          state_ptr_->toggleCell(gridX, gridY);
+          auto state_guard = state_thread_guard_ptr_->getStateGuard();
+          auto& game_state = state_guard.get();
+          game_state.toggleCell(gridX, gridY);
         }
         break;
       }
@@ -67,9 +68,12 @@ void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
             }
             paused = !paused;
             break;
-          case SDLK_R:
-            state_ptr_->reset();
+          case SDLK_R: {
+            auto state_guard = state_thread_guard_ptr_->getStateGuard();
+            auto& game_state = state_guard.get();
+            game_state.reset();
             break;
+          }
           default:
             break;
         }
@@ -94,7 +98,8 @@ void GameRenderer::render_() {
 }
 
 void GameRenderer::drawField_() {
-  const auto& field = state_ptr_->getField().getField();
+  auto state_guard = state_thread_guard_ptr_->getStateGuard();
+  const auto& field = state_guard.get().getField();
 
   for (uint32_t i = 0; i < field.size(); ++i) {
     for (uint32_t j = 0; j < field[i].size(); ++j) {

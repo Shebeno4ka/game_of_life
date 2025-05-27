@@ -4,7 +4,10 @@
 
 GameRunner::GameRunner(std::shared_ptr<ThreadSafeGameState> state,
                        const uint32_t updates_per_second)
-    : state_(std::move(state)), updates_per_second_(updates_per_second), running_(false), paused_(true) {}
+    : state_thread_guard_ptr_(std::move(state)),
+      updates_per_second_(updates_per_second),
+      running_(false),
+      paused_(true) {}
 
 GameRunner::~GameRunner() { stop(); }
 
@@ -20,10 +23,10 @@ void GameRunner::stop() {
   if (game_thread_.joinable()) game_thread_.join();
 }
 
-void GameRunner::pause() { paused_ = true; }
+void GameRunner::pause() { paused_.store(true); }
 
 void GameRunner::resume() {
-  paused_ = false;
+  paused_.store(false);
   pause_cond_var_.notify_one();
 }
 
@@ -38,17 +41,22 @@ void GameRunner::updateLoop_() {
       last_time = std::chrono::steady_clock::now();
     }
 
-    // Calculating how much updates we need to do since the last update
-    auto current_time = std::chrono::steady_clock::now();
-    std::chrono::duration<double> elapsed_time = current_time - last_time;
-    double delta_time = elapsed_time.count();
-    if (delta_time >= 1.0 / updates_per_second_) {
-      while (delta_time >= 1.0 / updates_per_second_) {
-        state_->update();
-        delta_time -= 1.0 / updates_per_second_;
+    {
+      // Getting access to game state
+      auto field_guard = state_thread_guard_ptr_->getStateGuard();
+      auto& state = field_guard.get();
+
+      // Calculating how much updates we need to do since the last update
+      auto current_time = std::chrono::steady_clock::now();
+      std::chrono::duration<double> elapsed_time = current_time - last_time;
+      double delta_time = elapsed_time.count();
+      if (delta_time >= 1.0 / updates_per_second_) {
+        while (delta_time >= 1.0 / updates_per_second_) {
+          state.update();
+          delta_time -= 1.0 / updates_per_second_;
+        }
+        last_time = current_time;
       }
-      last_time = current_time;
     }
-    std::this_thread::sleep_for(10ms);
   }
 }

@@ -14,7 +14,7 @@ constexpr SDL_Color kBackgroundColor = {0, 0, 0, 255};
 constexpr SDL_Color kCellColor = {255, 255, 255, 255};
 
 class GameRenderer {
-  std::shared_ptr<ThreadSafeGameState> state_ptr_;
+  std::shared_ptr<ThreadSafeGameState> state_thread_guard_ptr_;
   std::shared_ptr<SDL_Renderer> renderer_ptr_;
   GameRunner& game_runner_;
 
