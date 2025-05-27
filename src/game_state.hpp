@@ -39,8 +39,8 @@ class GameState {
  public:
   /**
    * \brief Constructs a GameState with the specified dimensions.
-   * \param height The height of the game field.
-   * \param width The width of the game field.
+   * \param height Positive number, height of the game field.
+   * \param width Positive number, width of the game field.
    */
   GameState(uint32_t height, uint32_t width);
 
