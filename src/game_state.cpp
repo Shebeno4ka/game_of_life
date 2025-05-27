@@ -21,7 +21,7 @@ void GameState::toggleCell(uint32_t i, uint32_t j) {
   (*first_field_ptr_)[j][i] = !(*first_field_ptr_)[j][i];
 }
 
-const GameState::field_t& GameState::getField() const {
+GameState::field_t& GameState::getField() {
   return *first_field_ptr_;
 }
 

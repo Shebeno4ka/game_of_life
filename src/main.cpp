@@ -42,9 +42,10 @@ int startGame(Options &opts) {
   auto state = std::make_shared<ThreadSafeGameState>(
       std::make_shared<GameState>(&field));
 
-  GameRunner game_runner(state, opts.updates_per_second);
-  GameRenderer game_renderer(state, renderer_ptr, game_runner);
-  game_runner.start();
+  auto game_runner = std::make_unique<GameRunner>(state, opts.updates_per_second);
+  game_runner->start();
+
+  GameRenderer game_renderer(state, renderer_ptr, std::move(game_runner));
   game_renderer.start();
 
   SDL_Quit();

@@ -19,8 +19,8 @@ constexpr SDL_Color kHoveredCellColor = {255, 0, 0, 128};
 class GameRenderer {
   std::shared_ptr<ThreadSafeGameState> state_thread_guard_ptr_;
   std::shared_ptr<SDL_Renderer> renderer_ptr_;
-  GameRunner& game_runner_;
-  std::optional<std::pair<uint32_t, uint32_t>> hovered_cell_;
+  std::unique_ptr<GameRunner> game_runner_;
+  std::optional<std::pair<uint32_t, uint32_t>> hovered_cell_coords_;
 
  public:
   GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
