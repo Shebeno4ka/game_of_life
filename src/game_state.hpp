@@ -2,13 +2,14 @@
 
 #include <cstdint>
 #include <vector>
+#include <array>
 
 // clang-format off
-const std::vector<std::pair<uint32_t, uint32_t>> neighbours_offsets = {
-    {-1, -1}, {-1, 0}, {-1, 1},
-    {0, -1},          {0, 1},
-    {1, -1}, {1, 0}, {1, 1}
-};
+const std::array<std::pair<int8_t, int8_t>, 8> neighbours_offsets = {{
+  {-1, -1}, {-1, 0}, {-1, 1},
+  {0, -1},          {0, 1},
+  {1, -1}, {1, 0}, {1, 1}
+}};
 // clang-format on
 
 class GameState {
