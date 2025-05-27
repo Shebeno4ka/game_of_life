@@ -25,9 +25,9 @@ constexpr char kHelpText[] =
 constexpr int kDefaultGameSpeed = 8;
 
 struct Options {
-  uint32_t size_x;
-  uint32_t size_y;
-  uint32_t updates_per_second;
+  int size_x;
+  int size_y;
+  int updates_per_second;
 };
 
 /**
@@ -53,11 +53,15 @@ static std::optional<Options> ParseCommandLineOptions(int argc, char* argv[]) {
   }
 
   try {
-    opts.size_x = static_cast<uint32_t>(std::stoul(argv[1]));
-    opts.size_y = static_cast<uint32_t>(std::stoul(argv[2]));
-    opts.updates_per_second = (argc > 3)
-                                  ? static_cast<uint32_t>(std::stoul(argv[3]))
+    opts.size_x = std::stoi(argv[1]);
+    opts.size_y = std::stoi(argv[2]);
+    opts.updates_per_second = argc > 3
+                                  ? std::stoi(argv[3])
                                   : kDefaultGameSpeed;
+    if (opts.size_x <= 0 || opts.size_y <= 0 ||
+        opts.updates_per_second <= 0) {
+      throw InvalidArgumentException("Arguments must be positive integers");
+    }
   } catch (const std::invalid_argument& e) {
     throw InvalidArgumentException("Arguments must be integers");
   } catch (const std::out_of_range& e) {
