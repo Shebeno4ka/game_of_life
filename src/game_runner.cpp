@@ -42,7 +42,7 @@ void GameRunner::updateLoop_() {
     }
 
     {
-      // Getting access to game state
+      // Getting access to the game state
       auto field_guard = state_thread_guard_ptr_->getStateGuard();
       auto& state = field_guard.get();
 
