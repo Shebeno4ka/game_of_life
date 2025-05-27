@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 
-#include "exceptions.hpp"
+#include "invalid_argument_exception.hpp"
 
 constexpr char kHelpText[] =
     "game_of_life - Game of Life cellular automaton simulation\n\n"
@@ -37,7 +37,7 @@ struct Options {
  * @param argv Array of command line argument strings
  * @return std::optional<Options> Parsed options if successful, std::nullopt if
  * help is requested
- * @throws InvalidArgumentException If arguments are invalid, missing, or in
+ * @throws invalid_argument_exception If arguments are invalid, missing, or in
  * wrong format
  */
 static std::optional<Options> ParseCommandLineOptions(int argc, char* argv[]) {
@@ -49,7 +49,7 @@ static std::optional<Options> ParseCommandLineOptions(int argc, char* argv[]) {
   }
 
   if (argc < 3) {
-    throw InvalidArgumentException("Not enough arguments");
+    throw invalid_argument_exception("Not enough arguments");
   }
 
   try {
@@ -60,12 +60,12 @@ static std::optional<Options> ParseCommandLineOptions(int argc, char* argv[]) {
                                   : kDefaultGameSpeed;
     if (opts.size_x <= 0 || opts.size_y <= 0 ||
         opts.updates_per_second <= 0) {
-      throw InvalidArgumentException("Arguments must be positive integers");
+      throw invalid_argument_exception("Arguments must be positive integers");
     }
   } catch (const std::invalid_argument& e) {
-    throw InvalidArgumentException("Arguments must be integers");
+    throw invalid_argument_exception("Arguments must be integers");
   } catch (const std::out_of_range& e) {
-    throw InvalidArgumentException("Arguments too large");
+    throw invalid_argument_exception("Arguments too large");
   }
 
   return opts;
