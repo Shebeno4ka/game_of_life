@@ -54,6 +54,20 @@ void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
         break;
       }
 
+      case SDL_EVENT_MOUSE_MOTION: {
+        float mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        auto gridX = static_cast<uint32_t>(mouseX / kCellPixels);
+        auto gridY = static_cast<uint32_t>(mouseY / kCellPixels);
+
+        if (gridX < size_x && gridY < size_y) {
+          hovered_cell_ = std::make_pair(gridX, gridY);
+        } else {
+          hovered_cell_.reset(); // курсор вне поля
+        }
+        break;
+      }
+
       case SDL_EVENT_KEY_DOWN: {
         switch (event.key.key) {
           case SDLK_ESCAPE:
@@ -94,6 +108,9 @@ void GameRenderer::render_() {
 
   drawField_();
 
+  if (hovered_cell_)
+    drawHoveredCell_();
+
   SDL_RenderPresent(renderer_ptr_.get());
 }
 
@@ -101,11 +118,11 @@ void GameRenderer::drawField_() {
   auto state_guard = state_thread_guard_ptr_->getStateGuard();
   const auto& field = state_guard.get().getField();
 
+  SDL_SetRenderDrawColor(renderer_ptr_.get(), kCellColor.r, kCellColor.g,
+                       kCellColor.b, kCellColor.a);
   for (uint32_t i = 0; i < field.size(); ++i) {
     for (uint32_t j = 0; j < field[i].size(); ++j) {
       if (field[i][j]) {
-        SDL_SetRenderDrawColor(renderer_ptr_.get(), kCellColor.r, kCellColor.g,
-                               kCellColor.b, kCellColor.a);
         const SDL_Rect rect{static_cast<int>(kCellPixels * j),
                             static_cast<int>(i * kCellPixels), kCellPixels,
                             kCellPixels};
@@ -115,4 +132,15 @@ void GameRenderer::drawField_() {
       }
     }
   }
+}
+void GameRenderer::drawHoveredCell_() {
+  SDL_SetRenderDrawColor(renderer_ptr_.get(), kHoveredCellColor.r, kHoveredCellColor.g,
+                       kHoveredCellColor.b, kHoveredCellColor.a);
+  const auto& [x, y] = *hovered_cell_;
+  SDL_Rect rect{static_cast<int>(x * kCellPixels),
+                static_cast<int>(y * kCellPixels),
+                kCellPixels, kCellPixels};
+  SDL_FRect frect{};
+  SDL_RectToFRect(&rect, &frect);
+  SDL_RenderRect(renderer_ptr_.get(), &frect);
 }

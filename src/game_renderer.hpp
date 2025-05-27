@@ -4,6 +4,8 @@
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_render.h>
 
+#include <optional>
+
 #include "game_runner.hpp"
 #include "thread_safe_game_state.hpp"
 
@@ -12,11 +14,13 @@ using namespace std::chrono_literals;
 constexpr uint16_t kCellPixels = 10;
 constexpr SDL_Color kBackgroundColor = {0, 0, 0, 255};
 constexpr SDL_Color kCellColor = {255, 255, 255, 255};
+constexpr SDL_Color kHoveredCellColor = {255, 0, 0, 128};
 
 class GameRenderer {
   std::shared_ptr<ThreadSafeGameState> state_thread_guard_ptr_;
   std::shared_ptr<SDL_Renderer> renderer_ptr_;
   GameRunner& game_runner_;
+  std::optional<std::pair<uint32_t, uint32_t>> hovered_cell_;
 
  public:
   GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
@@ -30,4 +34,5 @@ class GameRenderer {
                      bool& paused);
   void render_();
   void drawField_();
+  void drawHoveredCell_();
 };
