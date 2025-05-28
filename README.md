@@ -2,7 +2,7 @@
 - Обновление не зависит от FPS
 - Работает стабильно на любых скоростях
 
-### Требования  
+### Требования
 - CMake >= 3.10
 - Компилятор g++ с поддержкой C++17
 - SDL3
@@ -38,7 +38,7 @@ Game of Life simulates cells that live or die based on their neighbors.
 Parameters:
   SIZE_X              integer, Width of the game grid
   SIZE_Y              integer, Height of the game grid
-  SPEED               integer, Game simulation speed in updates/sec (optional, default: 1)
+  SPEED               integer, Game simulation speed in updates/sec (optional, default: 8)
 
 Options:
   -h, --help          Display this help and exit
@@ -46,9 +46,4 @@ Options:
 Examples:
   game_of_life 50 40      Run with a 50x40 grid at default speed
   game_of_life 80 60 3    Run with an 80x60 grid at speed 3
-```
-
-### Дополнительно:
-```bash
-./game_of_life 50 40 80
 ```
