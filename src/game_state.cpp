@@ -6,8 +6,8 @@ GameState::GameState(uint32_t height, uint32_t width)
       first_field_ptr_(&field1_),
       second_field_ptr_(&field2_) {}
 
-GameState::GameState(field_t* field)
-    : field1_(*field),
+GameState::GameState(field_t&& field)
+    : field1_(field),
       field2_(field1_),
       first_field_ptr_(&field1_),
       second_field_ptr_(&field2_) {}

@@ -36,8 +36,8 @@ int startGame(Options &opts) {
 
   std::vector field(opts.size_y, std::vector(opts.size_x, false));
 
-  auto state = std::make_shared<ThreadSafeGameState>(
-      std::make_shared<GameState>(&field));
+  auto game_state = std::make_shared<ThreadSafeGameState>(
+      std::make_shared<GameState>(std::move(field)));
 
   auto game_runner =
       std::make_unique<GameRunner>(game_state, opts.updates_per_second);

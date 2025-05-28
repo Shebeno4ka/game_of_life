@@ -48,7 +48,7 @@ class GameState {
    * \brief Constructs a GameState using an existing game field.
    * \param field Pointer to an existing game field.
    */
-  explicit GameState(field_t* field);
+  explicit GameState(field_t&& field);
 
   /**
    * \brief Updates the game state by one step.
