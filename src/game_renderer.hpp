@@ -11,7 +11,7 @@
 
 using namespace std::chrono_literals;
 
-constexpr uint16_t kCellPixels = 5;
+constexpr uint16_t kCellPixels = 10;
 constexpr SDL_Color kBackgroundColor = {0, 0, 0, 255};
 constexpr SDL_Color kCellColor = {255, 255, 255, 255};
 constexpr SDL_Color kHoveredCellColor = {255, 0, 0, 128};
