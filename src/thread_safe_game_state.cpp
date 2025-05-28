@@ -9,7 +9,9 @@ ThreadSafeGameState::FieldGuard::FieldGuard(std::mutex& mutex,
                                             std::shared_ptr<GameState> state)
     : lock_(mutex), state_(std::move(state)) {}
 
-GameState& ThreadSafeGameState::FieldGuard::get() & { return *state_; }
+GameState& ThreadSafeGameState::FieldGuard::get() & {
+  return *state_;
+}
 
 ThreadSafeGameState::FieldGuard ThreadSafeGameState::getStateGuard() const {
   return FieldGuard{mutex_, state_};

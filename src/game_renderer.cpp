@@ -15,8 +15,8 @@ void GameRenderer::start() {
   {
     auto state_guard = state_thread_guard_ptr_->getStateGuard();
     auto& game_state = state_guard.get();
-    size_x = game_state.getField().size();
-    size_y = game_state.getField()[0].size();
+    size_x = game_state.getField()[0].size();
+    size_y = game_state.getField().size();
   }
 
   bool running = true;
@@ -28,8 +28,10 @@ void GameRenderer::start() {
   }
 }
 
-void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
-                                 bool& running, bool& paused) {
+void GameRenderer::handleEvents_(uint64_t size_x,
+                                 uint64_t size_y,
+                                 bool& running,
+                                 bool& paused) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -88,7 +90,7 @@ void GameRenderer::handleEvents_(uint64_t size_x, uint64_t size_y,
         if (gridX < size_x && gridY < size_y) {
           hovered_cell_coords_ = std::make_pair(gridX, gridY);
         } else {
-          hovered_cell_coords_.reset(); // курсор вне поля
+          hovered_cell_coords_.reset();  // курсор вне поля
         }
         break;
       }
@@ -118,7 +120,7 @@ void GameRenderer::drawField_() {
   const auto& field = state_guard.get().getField();
 
   SDL_SetRenderDrawColor(renderer_ptr_.get(), kCellColor.r, kCellColor.g,
-                       kCellColor.b, kCellColor.a);
+                         kCellColor.b, kCellColor.a);
   for (uint32_t i = 0; i < field.size(); ++i) {
     for (uint32_t j = 0; j < field[i].size(); ++j) {
       if (field[i][j]) {
@@ -132,13 +134,14 @@ void GameRenderer::drawField_() {
     }
   }
 }
+
 void GameRenderer::drawHoveredCell_() {
-  SDL_SetRenderDrawColor(renderer_ptr_.get(), kHoveredCellColor.r, kHoveredCellColor.g,
-                       kHoveredCellColor.b, kHoveredCellColor.a);
+  SDL_SetRenderDrawColor(renderer_ptr_.get(), kHoveredCellColor.r,
+                         kHoveredCellColor.g, kHoveredCellColor.b,
+                         kHoveredCellColor.a);
   const auto& [x, y] = *hovered_cell_coords_;
   SDL_Rect rect{static_cast<int>(x * kCellPixels),
-                static_cast<int>(y * kCellPixels),
-                kCellPixels, kCellPixels};
+                static_cast<int>(y * kCellPixels), kCellPixels, kCellPixels};
   SDL_FRect frect{};
   SDL_RectToFRect(&rect, &frect);
   SDL_RenderRect(renderer_ptr_.get(), &frect);

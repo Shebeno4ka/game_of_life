@@ -17,20 +17,15 @@ int startGame(Options &opts) {
     return 1;
   }
 
-  uint32_t window_side_size = opts.size_y * kCellPixels;
-
   auto sdl_window = SDL_CreateWindow(
-      "Game of Life",
-      static_cast<int>(window_side_size), static_cast<int>(window_side_size),
-      SDL_WINDOW_HIGH_PIXEL_DENSITY);
+      "Game of Life", opts.size_x * kCellPixels, opts.size_y * kCellPixels, SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (!sdl_window) {
     std::cerr << "Window creation error: " << SDL_GetError() << std::endl;
     return 1;
   }
   std::shared_ptr<SDL_Window> window_ptr(sdl_window, &SDL_DestroyWindow);
 
-  SDL_Renderer *renderer =
-      SDL_CreateRenderer(window_ptr.get(), nullptr);
+  SDL_Renderer* renderer = SDL_CreateRenderer(window_ptr.get(), nullptr);
   if (!renderer) {
     std::cerr << "Renderer creation error: " << SDL_GetError() << std::endl;
     return 1;
@@ -39,15 +34,16 @@ int startGame(Options &opts) {
 
   SDL_SetRenderVSync(renderer_ptr.get(), 1);
 
-  std::vector field(opts.size_y, std::vector<bool>(opts.size_x, false));
+  std::vector field(opts.size_y, std::vector(opts.size_x, false));
 
   auto state = std::make_shared<ThreadSafeGameState>(
       std::make_shared<GameState>(&field));
 
-  auto game_runner = std::make_unique<GameRunner>(state, opts.updates_per_second);
+  auto game_runner =
+      std::make_unique<GameRunner>(game_state, opts.updates_per_second);
   game_runner->start();
 
-  GameRenderer game_renderer(state, renderer_ptr, std::move(game_runner));
+  GameRenderer game_renderer(game_state, renderer_ptr, std::move(game_runner));
   game_renderer.start();
 
   SDL_Quit();

@@ -9,7 +9,9 @@ GameRunner::GameRunner(std::shared_ptr<ThreadSafeGameState> state,
       running_(false),
       paused_(true) {}
 
-GameRunner::~GameRunner() { stop(); }
+GameRunner::~GameRunner() {
+  stop();
+}
 
 void GameRunner::start() {
   running_ = true;
@@ -20,10 +22,13 @@ void GameRunner::stop() {
   running_ = false;
   paused_ = false;
   pause_cond_var_.notify_all();
-  if (game_thread_.joinable()) game_thread_.join();
+  if (game_thread_.joinable())
+    game_thread_.join();
 }
 
-void GameRunner::pause() { paused_.store(true); }
+void GameRunner::pause() {
+  paused_.store(true);
+}
 
 void GameRunner::resume() {
   paused_.store(false);
@@ -37,7 +42,8 @@ void GameRunner::updateLoop_() {
       std::unique_lock lock(pause_mutex_);
       pause_cond_var_.wait(
           lock, [this] { return !paused_.load() || !running_.load(); });
-      if (!running_.load()) break;
+      if (!running_.load())
+        break;
       last_time = std::chrono::steady_clock::now();
     }
 

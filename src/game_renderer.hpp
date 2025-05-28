@@ -11,7 +11,7 @@
 
 using namespace std::chrono_literals;
 
-constexpr uint16_t kCellPixels = 10;
+constexpr uint16_t kCellPixels = 5;
 constexpr SDL_Color kBackgroundColor = {0, 0, 0, 255};
 constexpr SDL_Color kCellColor = {255, 255, 255, 255};
 constexpr SDL_Color kHoveredCellColor = {255, 0, 0, 128};
@@ -50,7 +50,9 @@ class GameRenderer {
    * \param running Reference to the running state of the game loop.
    * \param paused Reference to the paused state of the game loop.
    */
-  void handleEvents_(uint64_t size_x, uint64_t size_y, bool& running,
+  void handleEvents_(uint64_t size_x,
+                     uint64_t size_y,
+                     bool& running,
                      bool& paused);
 
   /**
