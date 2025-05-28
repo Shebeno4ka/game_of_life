@@ -37,6 +37,8 @@ int startGame(Options &opts) {
   }
   std::shared_ptr<SDL_Renderer> renderer_ptr(renderer, &SDL_DestroyRenderer);
 
+  SDL_SetRenderVSync(renderer_ptr.get(), 1);
+
   std::vector field(opts.size_y, std::vector<bool>(opts.size_x, false));
 
   auto state = std::make_shared<ThreadSafeGameState>(
