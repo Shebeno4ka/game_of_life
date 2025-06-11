@@ -46,7 +46,7 @@ class GameRunner {
    * \param state Shared pointer to the thread-safe game state.
    * \param updates_per_second Number of updates per second for the game loop.
    */
-  GameRunner(ThreadSafeGameState&& state, uint32_t updates_per_second);
+  GameRunner(GameState&& state, uint32_t updates_per_second);
   ~GameRunner();
 
   /**

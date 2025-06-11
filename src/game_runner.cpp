@@ -1,10 +1,12 @@
 #include "game_runner.hpp"
 
 #include <utility>
+#include "game_state.hpp"
+#include "thread_safe_game_state.hpp"
 
-GameRunner::GameRunner(std::shared_ptr<ThreadSafeGameState> state,
-                       const uint32_t updates_per_second)
-    : state_thread_guard_ptr_(std::move(state)),
+GameRunner::GameRunner(GameState&& state, const uint32_t updates_per_second)
+    : event_queue_(EVENT_QUEUE_SIZE),
+      state_(std::move(state)),
       updates_per_second_(updates_per_second),
       running_(false),
       paused_(true) {}
@@ -24,6 +26,10 @@ void GameRunner::stop() {
   pause_cond_var_.notify_all();
   if (game_thread_.joinable())
     game_thread_.join();
+}
+
+void GameRunner::addEvent(GameEvent&& event) {
+  event_queue_.push(event);
 }
 
 void GameRunner::pause() {
@@ -49,7 +55,7 @@ void GameRunner::updateLoop_() {
 
     {
       // Getting access to the game state
-      auto field_guard = state_thread_guard_ptr_->getStateGuard();
+      auto field_guard = state_.getStateGuard();
       auto& state = field_guard.get();
 
       // Calculating how much updates we need to do since the last update
