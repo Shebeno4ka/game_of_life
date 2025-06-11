@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <shared_mutex>
+#include <mutex>
 
 #include "game_state.hpp"
 
@@ -20,6 +20,8 @@ class ThreadSafeGameState {
    * \param state A shared pointer to the GameState to be managed.
    */
   explicit ThreadSafeGameState(std::shared_ptr<GameState> state);
+
+  explicit ThreadSafeGameState(GameState&& state);
 
   /**
    * \class FieldGuard

@@ -3,7 +3,10 @@
 #include <utility>
 
 ThreadSafeGameState::ThreadSafeGameState(std::shared_ptr<GameState> state)
-    : state_(std::move(state)) {}
+    : state_(std::move(state)){}
+
+ThreadSafeGameState::ThreadSafeGameState(GameState&& state)
+    : state_(std::make_shared<GameState>(std::move(state))) {}
 
 ThreadSafeGameState::FieldGuard::FieldGuard(std::mutex& mutex,
                                             std::shared_ptr<GameState> state)
