@@ -9,6 +9,7 @@
 
 #include "game_event.hpp"
 #include "game_state.hpp"
+#include "thread_safe_game_state.hpp"
 
 using namespace std::chrono_literals;
 
@@ -37,7 +38,7 @@ class GameRunner {
   std::thread game_thread_;
   mutable std::mutex pause_mutex_;
   mutable std::condition_variable pause_cond_var_;
-  GameState state_;
+  ThreadSafeGameState state_;
 
  public:
   /**
@@ -45,7 +46,7 @@ class GameRunner {
    * \param state Shared pointer to the thread-safe game state.
    * \param updates_per_second Number of updates per second for the game loop.
    */
-  GameRunner(GameState&& state, uint32_t updates_per_second);
+  GameRunner(ThreadSafeGameState&& state, uint32_t updates_per_second);
   ~GameRunner();
 
   /**

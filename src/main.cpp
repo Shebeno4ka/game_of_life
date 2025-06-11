@@ -5,9 +5,10 @@
 #include <memory>
 
 #include "console.hpp"
-#include "game_renderer.hpp"
 #include "game_runner.hpp"
+#include "game_sdl_renderer.hpp"
 #include "game_state.hpp"
+#include "thread_safe_game_state.hpp"
 
 using sdl_window_ptr = std::shared_ptr<SDL_Window>;
 
@@ -38,15 +39,17 @@ int startGame(Options& opts) {
   std::vector field(static_cast<size_t>(opts.size_y),
                     std::vector(static_cast<size_t>(opts.size_x), false));
 
-  auto game_state = std::make_shared<ThreadSafeGameState>(
-      std::make_shared<GameState>(std::move(field)));
+  GameState&& game_state = GameState(std::move(field));
+  ThreadSafeGameState&& thread_safe_game_state =
+      ThreadSafeGameState(std::move(game_state));
 
-  auto game_runner =
-      std::make_unique<GameRunner>(game_state, opts.updates_per_second);
+  auto game_runner = std::make_unique<GameRunner>(
+      std::move(thread_safe_game_state), opts.updates_per_second);
   game_runner->start();
 
-  GameRenderer game_renderer(game_state, renderer_ptr, std::move(game_runner));
-  game_renderer.start();
+  // GameSDLRenderer game_renderer(game_state, renderer_ptr,
+  //                               std::move(game_runner));
+  // game_renderer.start();
 
   SDL_Quit();
   return 0;
