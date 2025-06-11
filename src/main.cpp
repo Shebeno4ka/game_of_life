@@ -40,11 +40,9 @@ int startGame(Options& opts) {
                     std::vector(static_cast<size_t>(opts.size_x), false));
 
   GameState&& game_state = GameState(std::move(field));
-  ThreadSafeGameState&& thread_safe_game_state =
-      ThreadSafeGameState(std::move(game_state));
 
-  auto game_runner = std::make_unique<GameRunner>(
-      std::move(thread_safe_game_state), opts.updates_per_second);
+  auto game_runner = std::make_unique<GameRunner>(std::move(game_state),
+                                                  opts.updates_per_second);
   game_runner->start();
 
   // GameSDLRenderer game_renderer(game_state, renderer_ptr,
