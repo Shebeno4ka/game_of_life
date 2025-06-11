@@ -60,6 +60,10 @@ class GameRunner {
 
   void addEvent(GameEvent&& event);
 
+  void pause();
+
+  void resume();
+
  private:
   /**
    * \brief The main update loop for the game.
