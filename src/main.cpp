@@ -11,14 +11,15 @@
 
 using sdl_window_ptr = std::shared_ptr<SDL_Window>;
 
-int startGame(Options &opts) {
+int startGame(Options& opts) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     std::cerr << "SDL init failed: " << SDL_GetError() << std::endl;
     return 1;
   }
 
-  auto sdl_window = SDL_CreateWindow(
-      "Game of Life", opts.size_x * kCellPixels, opts.size_y * kCellPixels, SDL_WINDOW_HIGH_PIXEL_DENSITY);
+  auto sdl_window = SDL_CreateWindow("Game of Life", opts.size_x * kCellPixels,
+                                     opts.size_y * kCellPixels,
+                                     SDL_WINDOW_HIGH_PIXEL_DENSITY);
   if (!sdl_window) {
     std::cerr << "Window creation error: " << SDL_GetError() << std::endl;
     return 1;
@@ -34,7 +35,8 @@ int startGame(Options &opts) {
 
   SDL_SetRenderVSync(renderer_ptr.get(), 1);
 
-  std::vector field(opts.size_y, std::vector(opts.size_x, false));
+  std::vector field(static_cast<size_t>(opts.size_y),
+                    std::vector(static_cast<size_t>(opts.size_x), false));
 
   auto game_state = std::make_shared<ThreadSafeGameState>(
       std::make_shared<GameState>(std::move(field)));
@@ -51,11 +53,13 @@ int startGame(Options &opts) {
 }
 
 int main(int argc, char* argv[]) {
+  Options opts_t{50, 100, 10};
+  return startGame(opts_t);
   std::optional<Options> opts;
 
   try {
     opts = ParseCommandLineOptions(argc, argv);
-  } catch (const InvalidArgumentException& e) {
+  } catch (const invalid_argument_exception& e) {
     std::cerr << "Error: " << e.what() << std::endl;
     std::cerr << "Type \"GameOfLife -h\" for help" << std::endl;
     return 1;
