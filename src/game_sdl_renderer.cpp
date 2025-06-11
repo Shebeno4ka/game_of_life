@@ -1,15 +1,15 @@
-#include "game_renderer.hpp"
+#include "game_sdl_renderer.hpp"
 
 #include <utility>
 
-GameRenderer::GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
-                           std::shared_ptr<SDL_Renderer> renderer_ptr,
-                           std::unique_ptr<GameRunner> game_runner)
+GameSDLRenderer::GameSDLRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
+                                 std::shared_ptr<SDL_Renderer> renderer_ptr,
+                                 std::unique_ptr<GameRunner> game_runner)
     : state_thread_guard_ptr_(std::move(state_ptr)),
       renderer_ptr_(std::move(renderer_ptr)),
       game_runner_(std::move(game_runner)) {}
 
-void GameRenderer::start() {
+void GameSDLRenderer::start() {
   uint64_t size_x;
   uint64_t size_y;
   {
@@ -28,10 +28,10 @@ void GameRenderer::start() {
   }
 }
 
-void GameRenderer::handleEvents_(uint64_t size_x,
-                                 uint64_t size_y,
-                                 bool& running,
-                                 bool& paused) {
+void GameSDLRenderer::handleEvents_(uint64_t size_x,
+                                    uint64_t size_y,
+                                    bool& running,
+                                    bool& paused) {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -101,7 +101,7 @@ void GameRenderer::handleEvents_(uint64_t size_x,
   }
 }
 
-void GameRenderer::render_() {
+void GameSDLRenderer::render_() {
   SDL_SetRenderDrawColor(renderer_ptr_.get(), kBackgroundColor.r,
                          kBackgroundColor.g, kBackgroundColor.b,
                          kBackgroundColor.a);
@@ -115,7 +115,7 @@ void GameRenderer::render_() {
   SDL_RenderPresent(renderer_ptr_.get());
 }
 
-void GameRenderer::drawField_() {
+void GameSDLRenderer::drawField_() {
   auto state_guard = state_thread_guard_ptr_->getStateGuard();
   const auto& field = state_guard.get().getField();
 
@@ -135,7 +135,7 @@ void GameRenderer::drawField_() {
   }
 }
 
-void GameRenderer::drawHoveredCell_() {
+void GameSDLRenderer::drawHoveredCell_() {
   SDL_SetRenderDrawColor(renderer_ptr_.get(), kHoveredCellColor.r,
                          kHoveredCellColor.g, kHoveredCellColor.b,
                          kHoveredCellColor.a);

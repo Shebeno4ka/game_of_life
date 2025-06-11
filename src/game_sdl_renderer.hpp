@@ -20,7 +20,7 @@ constexpr SDL_Color kHoveredCellColor = {255, 0, 0, 128};
  * \class GameRenderer
  * \brief Handles rendering of the game field and user interactions.
  */
-class GameRenderer {
+class GameSDLRenderer {
   std::shared_ptr<ThreadSafeGameState> state_thread_guard_ptr_;
   std::shared_ptr<SDL_Renderer> renderer_ptr_;
   std::unique_ptr<GameRunner> game_runner_;
@@ -33,9 +33,9 @@ class GameRenderer {
    * \param renderer_ptr Shared pointer to SDL renderer.
    * \param game_runner Unique pointer to started game runner instance.
    */
-  GameRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
-               std::shared_ptr<SDL_Renderer> renderer_ptr,
-               std::unique_ptr<GameRunner> game_runner);
+  GameSDLRenderer(std::shared_ptr<ThreadSafeGameState> state_ptr,
+                  std::shared_ptr<SDL_Renderer> renderer_ptr,
+                  std::unique_ptr<GameRunner> game_runner);
 
   /**
    * \brief Starts the rendering process.
