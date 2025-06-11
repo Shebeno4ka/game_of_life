@@ -87,5 +87,5 @@ class GameState {
    * \param j The column index to check.
    * \return True if the coordinates are valid, false otherwise.
    */
-  bool isValidCoord_(uint32_t i, uint32_t j);
+  bool isValidCoord_(int32_t i, int32_t j);
 };
