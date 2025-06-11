@@ -26,12 +26,12 @@ GameState::field_t& GameState::getField() {
 }
 
 void GameState::reset() {
-  for (auto& row : field1_) {
+  for (auto& row : field1_)
     std::fill(row.begin(), row.end(), false);
-  }
-  for (auto& row : field2_) {
+
+  for (auto& row : field2_)
     std::fill(row.begin(), row.end(), false);
-  }
+
   first_field_ptr_ = &field1_;
   second_field_ptr_ = &field2_;
 }
@@ -42,21 +42,23 @@ void GameState::doUpdate_(const field_t& field_to_read,
     for (uint32_t j = 0; j < field_to_read[i].size(); ++j) {
       uint32_t alive_neighbours = 0;
       for (const auto& offset : neighbours_offsets) {
-        uint32_t ni = i + offset.first;
-        uint32_t nj = j + offset.second;
+        int32_t ni = static_cast<int32_t>(i) + offset.first;
+        int32_t nj = static_cast<int32_t>(j) + offset.second;
         if (isValidCoord_(ni, nj)) {
-          alive_neighbours += field_to_read[ni][nj];
+          alive_neighbours +=
+              field_to_read[static_cast<size_t>(ni)][static_cast<size_t>(nj)];
         }
       }
-      if (field_to_read[i][j]) {
+
+      if (field_to_read[i][j])
         field_to_write[i][j] = alive_neighbours == 2 || alive_neighbours == 3;
-      } else {
+      else
         field_to_write[i][j] = alive_neighbours == 3;
-      }
     }
   }
 }
 
-bool GameState::isValidCoord_(uint32_t i, uint32_t j) {
-  return i < field1_.size() && j < field2_[0].size();
+bool GameState::isValidCoord_(int32_t i, int32_t j) {
+  return i < static_cast<int32_t>(field1_.size()) &&
+         j < static_cast<int32_t>(field2_[0].size()) && i >= 0 && j >= 0;
 }
