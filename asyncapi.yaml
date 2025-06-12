@@ -1,0 +1,78 @@
+asyncapi: '2.6.0'
+info:
+  title: Simple Game WebSocket API
+  version: '1.0.0'
+  description: |
+    Протокол обмена сообщениями между клиентом и сервером игры. Сервер рассылает 2D-массив boolean'ов,
+    представляющий состояние поля. Клиент может посылать события: поставить игру на паузу, снять с паузы, и переключить состояние клетки.
+
+servers:
+  production:
+    url: wss://game.example.com/ws
+    protocol: ws
+
+# С помощью поля channels можно задать список путей, по которым передаются сообщения, с которым взаимодействует приложение во время работы.
+channels:
+  game/state:
+    description: Сервер рассылает текущее состояние игрового поля.
+    subscribe:
+      operationId: receiveGameState
+      message:
+        name: GameState
+        payload:
+          $ref: '#/components/schemas/GameState'
+
+  game/pause:
+    description: Клиент ставит игру на паузу.
+    publish:
+      operationId: sendPause
+      message:
+        name: Pause
+        payload:
+          type: object
+          description: Пустой объект, чтобы выразить факт паузы
+
+  game/resume:
+    description: Клиент снимает игру с паузы.
+    publish:
+      operationId: sendResume
+      message:
+        name: Resume
+        payload:
+          type: object
+          description: Пустой объект, чтобы выразить факт продолжения
+
+  game/toggle-cell:
+    description: Клиент переключает состояние клетки.
+    publish:
+      operationId: toggleCell
+      message:
+        name: ToggleCell
+        payload:
+          $ref: '#/components/schemas/ToggleCell'
+
+components:
+  schemas:
+    GameState:
+      type: object
+      properties:
+        field:
+          type: array
+          description: 2D-массив клеток (включено/выключено)
+          items:
+            type: array
+            items:
+              type: boolean
+
+    ToggleCell:
+      type: object
+      required:
+        - x
+        - y
+      properties:
+        x:
+          type: integer
+          minimum: 0
+        y:
+          type: integer
+          minimum: 0
