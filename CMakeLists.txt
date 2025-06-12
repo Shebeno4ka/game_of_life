@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(GameOfLife)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # if(MSVC)
@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # else()
 #     add_compile_options(
 #         -Wall
-#         -Wextra
+#         -Wextras
 #         -Wpedantic
 #         -Werror
 #         -Wconversion
@@ -36,11 +36,13 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 add_executable(GameOfLife
         src/main.cpp
-        src/game_state.cpp
-        src/game_runner.cpp
-        src/game_sdl_renderer.cpp
-        src/thread_safe_game_state.cpp
+        # src/game_state.cpp
+        # src/game_runner.cpp
+        # src/game_sdl_renderer.cpp
+        # src/thread_safe_game_state.cpp
         # src/websocket_server.cpp
+        src/ws_controller.cpp
+        src/ws_controller.hpp
 )
 
 target_include_directories(GameOfLife PRIVATE 
