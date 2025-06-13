@@ -47,7 +47,6 @@
 <body>
     <h1>Game of Life</h1>
     <div id="status" class="disconnected">Connecting to WebSocket...</div>
-    <div class="info">Кликните на клетку, чтобы изменить её состояние</div>
     <canvas id="gameCanvas"></canvas>
 
     <script>
@@ -86,9 +85,9 @@
         // Track hovered cell
         let hoveredCell = { x: -1, y: -1 };
         
-        // WebSocket connection
-        const socket = new WebSocket('ws://127.0.0.1:8080');
-        
+        // WebSocket connection - через nginx прокси
+        const socket = new WebSocket('ws://127.0.0.1/ws');
+
         // Connection opened
         socket.addEventListener('open', (event) => {
             statusElement.textContent = 'Connected to WebSocket';

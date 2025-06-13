@@ -24,7 +24,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL3 REQUIRED sdl3)
+# pkg_check_modules(SDL3 REQUIRED sdl3)
 
 # Set policy for Boost finding
 if(POLICY CMP0167)
@@ -46,12 +46,12 @@ add_executable(GameOfLife
 )
 
 target_include_directories(GameOfLife PRIVATE 
-    ${SDL3_INCLUDE_DIRS}
+    # ${SDL3_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(GameOfLife PRIVATE 
-    ${SDL3_LIBRARIES}
+    # ${SDL3_LIBRARIES}
     ${Boost_LIBRARIES}
     pthread
 )

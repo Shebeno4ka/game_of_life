@@ -30,6 +30,33 @@ class WSServer {
   WSServer() = default;
   ~WSServer() = default;
 
+ public:
+  void startListening(std::string&& address_str = "127.0.0.1",
+                      unsigned short port = 8080) {
+    try {
+      net::ip::address address = net::ip::make_address(address_str);
+
+      net::io_context ioc;
+
+      // The acceptor receives incoming connections
+      tcp::acceptor acceptor{ioc, {address, port}};
+
+      // Set socket options to allow reuse of address
+      acceptor.set_option(net::socket_base::reuse_address(true));
+
+      std::cout << "WebSocket server listening on " << address << ":" << port
+                << std::endl;
+
+      for (;;) {
+        tcp::socket socket{ioc};
+        acceptor.accept(socket);
+        std::thread(&WSServer::do_session, this, std::move(socket)).detach();
+      }
+    } catch (const std::exception& e) {
+      std::cerr << "Error: " << e.what() << std::endl;
+    }
+  }
+
  private:
   // Parse incoming message to GameEvent
   std::optional<GameEvent> parseMessage(const std::string& message) {
@@ -55,55 +82,6 @@ class WSServer {
     }
 
     return std::nullopt;
-  }
-
-  // Process GameEvent
-  void processGameEvent(const GameEvent& event) {
-    std::visit(
-        [](const auto& e) {
-          using T = std::decay_t<decltype(e)>;
-          if constexpr (std::is_same_v<T, AddCellEvent>) {
-            std::cout << "AddCell event: x=" << e.x << ", y=" << e.y
-                      << std::endl;
-            // TODO: Add cell to game state
-          } else if constexpr (std::is_same_v<T, PauseEvent>) {
-            std::cout << "Pause event received" << std::endl;
-            // TODO: Pause game
-          } else if constexpr (std::is_same_v<T, UnPauseEvent>) {
-            std::cout << "Unpause event received" << std::endl;
-            // TODO: Unpause game
-          }
-        },
-        event);
-  }
-
- public:
-  void listenToConnections() {
-    try {
-      // Use IP address instead of hostname to avoid resolution issues
-      auto const address = net::ip::make_address("127.0.0.1");
-      auto const port = static_cast<unsigned short>(8080);
-
-      // The io_context is required for all I/O
-      net::io_context ioc{1};
-
-      // The acceptor receives incoming connections
-      tcp::acceptor acceptor{ioc, {address, port}};
-
-      // Set socket options to allow reuse of address
-      acceptor.set_option(net::socket_base::reuse_address(true));
-
-      std::cout << "WebSocket server listening on " << address << ":" << port
-                << std::endl;
-
-      for (;;) {
-        tcp::socket socket{ioc};
-        acceptor.accept(socket);
-        std::thread(&WSServer::do_session, this, std::move(socket)).detach();
-      }
-    } catch (const std::exception& e) {
-      std::cerr << "Error: " << e.what() << std::endl;
-    }
   }
 
   // Echoes back all received WebSocket messages
@@ -157,6 +135,26 @@ class WSServer {
     } catch (std::exception const& e) {
       std::cerr << "Error: " << e.what() << std::endl;
     }
+  }
+
+  // Process GameEvent
+  void processGameEvent(const GameEvent& event) {
+    std::visit(
+        [](const auto& e) {
+          using T = std::decay_t<decltype(e)>;
+          if constexpr (std::is_same_v<T, AddCellEvent>) {
+            std::cout << "AddCell event: x=" << e.x << ", y=" << e.y
+                      << std::endl;
+            // TODO: Add cell to game state
+          } else if constexpr (std::is_same_v<T, PauseEvent>) {
+            std::cout << "Pause event received" << std::endl;
+            // TODO: Pause game
+          } else if constexpr (std::is_same_v<T, UnPauseEvent>) {
+            std::cout << "Unpause event received" << std::endl;
+            // TODO: Unpause game
+          }
+        },
+        event);
   }
 
   void onMessage(const std::string& message);
