@@ -1,59 +1,45 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
+project(LifeGameLocal)
 
-project(GameOfLife)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+# Включить директории
+include_directories(src)
 
-# if(MSVC)
-#     add_compile_options(/W4 /WX /permissive-)
-# else()
-#     add_compile_options(
-#         -Wall
-#         -Wextras
-#         -Wpedantic
-#         -Werror
-#         -Wconversion
-#         -Wshadow
-#         -Wunused
-#         -Wcast-align
-#         -Wcast-qual
-#         -Wformat=2
-#         -Wno-unused-parameter
-#     )
-# endif()
+# Исходные файлы
+set(SOURCES
+    src/core/BitField.cpp
+    src/core/GameSimulator.cpp
+    src/server/GameServer.cpp
+    src/network/WebSocketServer.cpp
+    src/utils/AsyncUtils.cpp
+)
 
-find_package(PkgConfig REQUIRED)
-# pkg_check_modules(SDL3 REQUIRED sdl3)
+# Заголовочные файлы
+set(HEADERS
+    src/core/BitField.h
+    src/core/GameSimulator.h
+    src/utils/MPSCQueue.h
+    src/server/GameServer.h
+    src/network/WebSocketServer.h
+    src/utils/AsyncUtils.h
+    src/utils/Constants.h
+)
 
-# Set policy for Boost finding
-if(POLICY CMP0167)
-  cmake_policy(SET CMP0167 NEW)
+# Основное приложение
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} src/main.cpp)
+
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+# Линковка библиотек
+if(Boost_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+    
+    message(STATUS "Основное приложение собрано с jsoncpp и Boost.Beast")
+else()
+    message(FATAL_ERROR "Boost не найден")
 endif()
-
-# Ищем Boost
-find_package(Boost REQUIRED COMPONENTS system)
-
-add_executable(GameOfLife
-        src/main.cpp
-        # src/game_state.cpp
-        # src/game_runner.cpp
-        # src/game_sdl_renderer.cpp
-        # src/thread_safe_game_state.cpp
-        # src/websocket_server.cpp
-        src/ws_controller.cpp
-        src/ws_controller.hpp
-)
-
-target_include_directories(GameOfLife PRIVATE 
-    # ${SDL3_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-)
-
-target_link_libraries(GameOfLife PRIVATE 
-    # ${SDL3_LIBRARIES}
-    ${Boost_LIBRARIES}
-    pthread
-)
-
-target_compile_options(GameOfLife PRIVATE ${SDL3_CFLAGS_OTHER})
