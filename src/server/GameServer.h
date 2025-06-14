@@ -70,7 +70,7 @@ class GameServer {
     void onClientMessage(std::vector<std::byte> data);
 
     // Парсинг сообщения клиента в события
-    std::vector<CellChange> parseClientMessage(std::vector<std::byte> message) const;
+    static std::vector<CellChange> parseClientMessage(std::vector<std::byte> message);
 };
 
 } // namespace LifeGame
