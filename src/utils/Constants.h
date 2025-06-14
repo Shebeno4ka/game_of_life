@@ -22,6 +22,9 @@ constexpr uint32_t NETWORK_UPDATE_INTERVAL_MS = 150; // Интервал отп�
 // Симуляция
 constexpr uint32_t SIMULATION_STEP_MS = 50;  // Шаг симуляции (20 FPS)
 
+// Размер сообщения от клиента
+constexpr int MESSAGE_BYTES_SIZE = sizeof(int32_t) + sizeof(int32_t);
+
 // Типы данных
 using Generation = uint64_t;
 using CellIndex = uint32_t;
