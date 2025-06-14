@@ -70,6 +70,22 @@ void GameServer::onClientMessage(std::vector<std::byte> data) {
     events_.push(std::move(event));
 }
 
-std::vector<CellChange> GameServer::parseClientMessage(std::vector<std::byte> message) const {}
+std::vector<CellChange> GameServer::parseClientMessage(std::vector<std::byte> message) {
+    if (message.size() % MESSAGE_BYTES_SIZE != 0 || message.empty()) {
+        return {};
+    }
+
+    std::vector<CellChange> changes;
+    changes.reserve(message.size() / MESSAGE_BYTES_SIZE);
+
+    for (size_t i = 0; i < message.size(); i += MESSAGE_BYTES_SIZE) {
+        uint32_t x = static_cast<uint32_t>(message[i]);
+        uint32_t y = static_cast<uint32_t>(message[i + 1]);
+
+        changes.emplace_back(x, y, true);
+    }
+
+    return changes;
+}
 
 } // namespace LifeGame
