@@ -1,5 +1,6 @@
 #include "WebSocketServer.h"
 #include <utils/AsyncUtils.h>
+#include <boost/asio/ip/address.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
@@ -7,8 +8,8 @@
 
 using namespace network;
 
-WebSocketServer::WebSocketServer(boost::asio::ip::address ip, uint16_t port)
-    : acceptor_(ioContext_, tcp::endpoint(ip, port)), nextConnectionId_(0) {}
+WebSocketServer::WebSocketServer(const std::string& ip, uint16_t port)
+    : acceptor_(ioContext_, tcp::endpoint(boost::asio::ip::make_address(ip), port)), nextConnectionId_(0) {}
 
 void WebSocketServer::setMessageCallback(MessageCallback cb) {
     messageCallback_ = std::move(cb);

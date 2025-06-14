@@ -29,7 +29,8 @@ namespace LifeGame {
 using namespace std::chrono_literals;
 class GameServer {
    public:
-    explicit GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs = 5000ms,
+    explicit GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
+                        std::chrono::milliseconds sendTimeoutMs = 5000ms,
                         std::chrono::milliseconds stepIntervalMs = 10000ms);
     ~GameServer();
 
@@ -52,7 +53,7 @@ class GameServer {
    private:
     // Основные компоненты
     GameSimulator simulator_;
-    network::WebSocketServer webSocketServer_;
+    std::unique_ptr<network::WebSocketServer> webSocketServer_;
     MPSCQueue<GameEvent> events_;
 
     // Настройки

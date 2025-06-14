@@ -22,7 +22,7 @@ class WebSocketServer {
     using Connection = websocket::stream<tcp::socket>;
     using ConnectionId = uint64_t;
 
-    WebSocketServer(asio::ip::address ip, uint16_t port);
+    WebSocketServer(const std::string& ip, uint16_t port);
 
     void setMessageCallback(MessageCallback cb);
 

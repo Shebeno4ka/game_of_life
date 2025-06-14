@@ -4,10 +4,13 @@
 
 namespace LifeGame {
 
-GameServer::GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs,
+GameServer::GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std::chrono::milliseconds sendTimeoutMs,
                        std::chrono::milliseconds stepIntervalMs)
-    : webSocketServer_(ip, port), stepIntervalMs_(stepIntervalMs), sendTimeoutMs_(sendTimeoutMs), running_(false) {
-    webSocketServer_.setMessageCallback([this](std::vector<std::byte> data) { onClientMessage(std::move(data)); });
+    : webSocketServer_(std::move(ws_server)),
+      stepIntervalMs_(stepIntervalMs),
+      sendTimeoutMs_(sendTimeoutMs),
+      running_(false) {
+    webSocketServer_->setMessageCallback([this](std::vector<std::byte> data) { onClientMessage(std::move(data)); });
 }
 
 GameServer::~GameServer() {
@@ -19,7 +22,7 @@ void GameServer::start() {
         return;
     }
     running_ = true;
-    webSocketServer_.start();
+    webSocketServer_->start();
     gameThread_ = std::thread(&GameServer::gameLoop, this);
 }
 
@@ -29,7 +32,7 @@ void GameServer::stop() {
     }
     running_.store(false);
     events_.close();
-    webSocketServer_.stop();
+    webSocketServer_->stop();
 
     if (gameThread_.joinable()) {
         gameThread_.join();
@@ -46,7 +49,7 @@ void GameServer::gameLoop() {
         simulator_.step();
 
         auto currentState = simulator_.getStateData();
-        auto sendFuture = webSocketServer_.sendToAllClients(std::move(currentState), sendTimeoutMs_);
+        auto sendFuture = webSocketServer_->sendToAllClients(std::move(currentState), sendTimeoutMs_);
 
         auto stepEndTime = stepStartTime + std::chrono::milliseconds(stepIntervalMs_);
         while (std::chrono::steady_clock::now() < stepEndTime) {
