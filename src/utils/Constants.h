@@ -18,11 +18,9 @@ constexpr uint32_t SECTOR_SIZE = 128; // Размер сектора для па
 
 // Сетевые параметры
 constexpr uint32_t NETWORK_UPDATE_INTERVAL_MS = 150; // Интервал отправки обновлений
-constexpr uint32_t MAX_DIFFERENTIAL_CHUNKS = 256;    // Максимум чанков в дифференциальном обновлении
 
 // Симуляция
 constexpr uint32_t SIMULATION_STEP_MS = 50;  // Шаг симуляции (20 FPS)
-constexpr uint32_t MAX_GENERATIONS = 100000; // Максимум поколений
 
 // Типы данных
 using Generation = uint64_t;
