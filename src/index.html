@@ -86,7 +86,7 @@
         let hoveredCell = { x: -1, y: -1 };
         
         // WebSocket connection - через nginx прокси
-        const socket = new WebSocket("ws://127.0.0.1/ws");
+        const socket = new WebSocket("ws://127.0.0.1:8080");
 
         // Connection opened
         socket.addEventListener('open', (event) => {
