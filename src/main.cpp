@@ -5,15 +5,28 @@
 #include <iostream>
 
 int main(int argc, char* argv[]) {
+    std::string ip = "127.0.0.1";
+    int port = 8080;
+
+    if (argc != 3 && argc != 1) {
+        std::cerr << "Usage: " << argv[0] << " [ip] [port]\n";
+        std::cerr << "Default: " << ip << ":" << port << "\n";
+        return 1;
+    }
+
+    if (argc == 3) {
+        ip = argv[1];
+        port = std::stoi(argv[2]);
+    }
+
     std::cout << "Starting game server..." << std::endl;
-    auto ws_server_ptr = std::make_unique<network::WebSocketServer>("0.0.0.0", 8080);
+    auto ws_server_ptr = std::make_unique<network::WebSocketServer>(ip, port);
     LifeGame::GameServer game_server(std::move(ws_server_ptr));
 
     game_server.start();
 
     std::cout << "Game server is up!" << std::endl;
-    while (true) {
-    }
+    while (true) {}
 
     // boost::asio::ip::address ip = boost::asio::ip::address::from_string("0.0.0.0");
     // network::WebSocketServer ws(ip, 8080);
