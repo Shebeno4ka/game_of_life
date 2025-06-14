@@ -27,6 +27,7 @@ set(HEADERS
     src/network/WebSocketServer.h
     src/utils/AsyncUtils.h
     src/utils/Constants.h
+        src/core/GameEvent.h
 )
 
 # Основное приложение
