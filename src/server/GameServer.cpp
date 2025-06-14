@@ -4,10 +4,10 @@
 
 namespace LifeGame {
 
-GameServer::GameServer(uint16_t port, std::chrono::milliseconds stepIntervalMs)
+GameServer::GameServer(uint16_t port, std::chrono::milliseconds sendTimeoutMs, std::chrono::milliseconds stepIntervalMs)
           : webSocketServer_(ioContext_, port)
           , stepIntervalMs_(stepIntervalMs)
-          , sendTimeoutMs_(5000ms)
+          , sendTimeoutMs_(sendTimeoutMs)
           , running_(false) {
     webSocketServer_.setMessageCallback([this](std::vector<std::byte> data) {
         onClientMessage(std::move(data));
@@ -73,7 +73,7 @@ void GameServer::onClientMessage(std::vector<std::byte> data) {
 
 
 std::vector<CellChange> GameServer::parseClientMessage(std::vector<std::byte> message) const {
-    throw std::runtime_error("NotImplemented: GameServer::parseClientMessage");
+
 }
 
 } // namespace LifeGame
