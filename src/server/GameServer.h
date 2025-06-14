@@ -30,8 +30,8 @@ using namespace std::chrono_literals;
 class GameServer {
    public:
     explicit GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
-                        std::chrono::milliseconds sendTimeoutMs = 5000ms,
-                        std::chrono::milliseconds stepIntervalMs = 10000ms);
+                        std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
+                        std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS);
     ~GameServer();
 
     // Управление сервером

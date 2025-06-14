@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 
 namespace LifeGame {
@@ -17,10 +18,11 @@ constexpr uint32_t DEFAULT_THREAD_COUNT = 8;
 constexpr uint32_t SECTOR_SIZE = 128; // Размер сектора для параллельной обработки
 
 // Сетевые параметры
-constexpr uint32_t NETWORK_UPDATE_INTERVAL_MS = 150; // Интервал отправки обновлений
+using namespace std::chrono;
+constexpr milliseconds NETWORK_UPDATE_INTERVAL_MS = 150ms; // Интервал отправки обновлений
 
 // Симуляция
-constexpr uint32_t SIMULATION_STEP_MS = 50; // Шаг симуляции (20 FPS)
+constexpr milliseconds SIMULATION_STEP_MS = 50ms; // Шаг симуляции (20 FPS)
 
 // Размер сообщения от клиента
 constexpr int MESSAGE_BYTES_SIZE = sizeof(int32_t) + sizeof(int32_t);
