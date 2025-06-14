@@ -1,9 +1,8 @@
 #pragma once
 
-#include <atomic>
-#include <chrono>
 #include <vector>
-#include "core/BitField.h"
+
+#include "BitField.h"
 
 namespace LifeGame {
 

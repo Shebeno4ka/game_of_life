@@ -1,4 +1,5 @@
-#include "core/GameSimulator.h"
+#include "GameSimulator.h"
+
 #include <algorithm>
 
 namespace LifeGame {
