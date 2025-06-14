@@ -1,59 +1,62 @@
 #include "WebSocketServer.h"
-#include <utils/AsyncUtils.h>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#include <utils/AsyncUtils.h>
 
 using namespace network;
 
-WebSocketServer::WebSocketServer(asio::io_context &ioContext, uint16_t port)
-    : ioContext_(ioContext)
-    , acceptor_(ioContext, tcp::endpoint(tcp::v4(), port))
-    , nextConnectionId_(0)  {
-
+WebSocketServer::WebSocketServer(asio::io_context &ioContext, uint16_t port, const std::string &address)
+    : ioContext_(ioContext), acceptor_(ioContext, tcp::endpoint(asio::ip::make_address(address), port)),
+      nextConnectionId_(0)
+{
 }
 
-void WebSocketServer::setMessageCallback(MessageCallback cb) {
+void WebSocketServer::setMessageCallback(MessageCallback cb)
+{
     messageCallback_ = std::move(cb);
 }
 
-void WebSocketServer::start() {
+void WebSocketServer::start()
+{
     acceptLoop();
 }
 
-void WebSocketServer::stop() {
+void WebSocketServer::stop()
+{
     std::scoped_lock lock(mutex_);
-    for (auto& [id, ws] : connections_) {
+    for (auto &[id, ws] : connections_)
+    {
         boost::system::error_code ignored;
         ws.next_layer().cancel(ignored);
     }
     connections_.clear();
 }
 
-asio::awaitable<void> WebSocketServer::sendMessage(
-        ConnectionId connectionId
-        , Connection &ws
-        , std::vector<std::byte> &data
-        , std::chrono::milliseconds timeout) {
+asio::awaitable<void> WebSocketServer::sendMessage(ConnectionId connectionId, Connection &ws,
+                                                   std::vector<std::byte> &data, std::chrono::milliseconds timeout)
+{
     auto timer = asio::steady_timer(co_await asio::this_coro::executor);
     boost::system::error_code ecWrite, ecTimer;
     std::atomic<bool> writeDone = false;
 
     timer.expires_after(timeout);
 
-    asio::co_spawn(ioContext_, [&ws, &data, &writeDone, &timer, &ecWrite]() -> asio::awaitable<void> {
-        co_await ws.async_write(
-            asio::buffer(data),
-            asio::redirect_error(asio::use_awaitable, ecWrite));
-        writeDone.store(true);
-        timer.cancel();
-        co_return;
-    }, asio::detached);
+    asio::co_spawn(
+        ioContext_,
+        [&ws, &data, &writeDone, &timer, &ecWrite]() -> asio::awaitable<void> {
+            co_await ws.async_write(asio::buffer(data), asio::redirect_error(asio::use_awaitable, ecWrite));
+            writeDone.store(true);
+            timer.cancel();
+            co_return;
+        },
+        asio::detached);
 
     co_await timer.async_wait(asio::redirect_error(asio::use_awaitable, ecTimer));
 
-    if (!writeDone.load()) {
+    if (!writeDone.load())
+    {
         boost::system::error_code ignored;
         ws.next_layer().cancel(ignored);
         std::scoped_lock lock(mutex_);
@@ -61,20 +64,20 @@ asio::awaitable<void> WebSocketServer::sendMessage(
         co_return;
     }
 
-    if (ecWrite) {
+    if (ecWrite)
+    {
         std::scoped_lock lock(mutex_);
         connections_.erase(connectionId);
     }
 }
 
-
-std::future<void> WebSocketServer::sendToAllClients(
-        std::vector<std::byte> data
-        , std::chrono::milliseconds timeout) {
+std::future<void> WebSocketServer::sendToAllClients(std::vector<std::byte> data, std::chrono::milliseconds timeout)
+{
     std::vector<asio::awaitable<void>> tasks;
     {
         std::scoped_lock lock(mutex_);
-        for (auto& [id, ws] : connections_) {
+        for (auto &[id, ws] : connections_)
+        {
             tasks.emplace_back(sendMessage(id, ws, data, timeout));
         }
     }
@@ -82,10 +85,11 @@ std::future<void> WebSocketServer::sendToAllClients(
     return runAll(ioContext_, std::move(tasks));
 }
 
-void WebSocketServer::acceptLoop() {
-    acceptor_.async_accept(
-    [this](boost::system::error_code ec, tcp::socket socket) {
-        if (!ec) {
+void WebSocketServer::acceptLoop()
+{
+    acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket socket) {
+        if (!ec)
+        {
             auto ws = Connection(std::move(socket));
             asio::co_spawn(ioContext_, handleSession(std::move(ws)), asio::detached);
         }
@@ -93,7 +97,8 @@ void WebSocketServer::acceptLoop() {
     });
 }
 
-asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
+asio::awaitable<void> WebSocketServer::handleSession(Connection ws)
+{
     co_await ws.async_accept(asio::use_awaitable);
 
     ConnectionId connectionId;
@@ -103,18 +108,21 @@ asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
         connections_.emplace(connectionId, ws);
     }
 
-    for (;;) {
+    for (;;)
+    {
         boost::beast::flat_buffer buffer;
         boost::system::error_code ec;
         co_await ws.async_read(buffer, asio::redirect_error(asio::use_awaitable, ec));
-        if (ec) {
+        if (ec)
+        {
             break;
         }
 
-        auto ptr = static_cast<std::byte*>(buffer.data().data());
+        auto ptr = static_cast<std::byte *>(buffer.data().data());
         std::vector<std::byte> data(ptr, ptr + buffer.size());
 
-        if (messageCallback_.has_value()) {
+        if (messageCallback_.has_value())
+        {
             (*messageCallback_)(std::move(data));
         }
     }
