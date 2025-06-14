@@ -1,1 +1,32 @@
-BasedOnStyle: Microsoft
+BasedOnStyle: Google  # или LLVM — зависит от предпочтений, но мы переопределим ключевые параметры
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+AllowShortFunctionsOnASingleLine: Empty
+BreakBeforeBraces: Attach  # открывающая скобка на той же строке
+
+# Именование переменных и методов clang-format не контролирует напрямую,
+# но можно указать настройки сортировки и выравнивания
+SortIncludes: false
+
+# Выравнивание параметров и аргументов
+AlignAfterOpenBracket: Align
+AlignOperands: true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+
+# Специфические настройки
+AlwaysBreakTemplateDeclarations: Yes
+AllowShortIfStatementsOnASingleLine: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+ColumnLimit: 120
+
+# Контроль отступов и скобок в функциях
+AllowShortBlocksOnASingleLine: Never
+SpacesBeforeTrailingComments: 1
+
+# Порядок членов класса
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4
