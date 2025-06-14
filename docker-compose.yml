@@ -9,7 +9,7 @@ services:
     #   - "8080:8080"  # Убираем внешний доступ, доступ только через nginx
     networks:
       - game-network
-    # restart: unless-stopped
+    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
