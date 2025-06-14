@@ -14,7 +14,7 @@ std::future<void> runAll(asio::io_context &ioc, std::vector<asio::awaitable<void
 
     for (auto& task: tasks) {
         asio::co_spawn(ioc, [t = std::move(task), control]() mutable -> asio::awaitable<void> {
-            co_await t;
+            co_await std::move(t);
             if (control->working.fetch_add(-1) == 1) {
                 control->promise.set_value();
                 delete control;

@@ -1,6 +1,5 @@
 #include "server/GameServer.h"
 #include "core/BitField.h"
-#include <json/json.h>
 #include <chrono>
 
 namespace LifeGame {

@@ -69,7 +69,11 @@ void BitField::toggleCell(uint32_t x, uint32_t y) {
 }
 
 std::vector<std::byte> BitField::getData() const {
-  std::vector<std::byte> data(data_, data_ + FIELD_BYTES);
+  std::vector<std::byte> data(FIELD_BYTES);
+  std::transform(data_, data_ + FIELD_BYTES, data.begin(), [](char c) {
+      return static_cast<std::byte>(c);
+  });
+
   return data;
 }
 

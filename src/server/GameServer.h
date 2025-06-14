@@ -61,9 +61,9 @@ public:
     bool isRunning() const { return running_; }
 
     // Настройки
-    void setStepInterval(uint32_t intervalMs) { stepIntervalMs_ = intervalMs; }
+    void setStepInterval(std::chrono::milliseconds intervalMs) { stepIntervalMs_ = intervalMs; }
     void setInitialPattern(BitField pattern);
-    void setSendTimeout(uint32_t timeoutMs) { sendTimeoutMs_ = timeoutMs; }
+    void setSendTimeout(std::chrono::milliseconds timeoutMs) { sendTimeoutMs_ = timeoutMs; }
 
 private:
     // Основные компоненты
