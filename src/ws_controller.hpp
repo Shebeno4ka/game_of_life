@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -16,6 +17,7 @@
 #include <boost/beast/websocket.hpp>
 
 #include "game_event.hpp"
+#include "game_runner.hpp"
 
 namespace beast = boost::beast;          // from <boost/beast.hpp>
 namespace http = beast::http;            // from <boost/beast/http.hpp>
@@ -24,13 +26,30 @@ namespace net = boost::asio;             // from <boost/asio.hpp>
 using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
 
 class WSServer {
-  std::vector<std::shared_ptr<websocket::stream<tcp::socket>>> clients_;
+  std::shared_ptr<GameRunner> game_runner_;
+  std::atomic_int64_t update_;
+  std::string field_to_update_;
+  std::atomic_int32_t open_connections_;
 
  public:
-  WSServer() = default;
-  ~WSServer() = default;
+  WSServer(std::shared_ptr<GameRunner> game_runner)
+      : game_runner_(std::move(game_runner)),
+        update_(0),
+        open_connections_(0) {}
 
- public:
+  void init() {
+    game_runner_->registerFieldUpdateCallback(
+        [this](std::vector<std::vector<bool>> field) {
+          std::string field_data;
+          for (auto& col_vect : field)
+            for (auto val : col_vect) {
+              field_data.push_back(val);
+            }
+
+          update_.store(open_connections_);
+        });
+  }
+
   void startListening(std::string&& address_str = "127.0.0.1",
                       unsigned short port = 8080) {
     try {
@@ -59,7 +78,7 @@ class WSServer {
 
  private:
   // Parse incoming message to GameEvent
-  std::optional<GameEvent> parseMessage(const std::string& message) {
+  static std::optional<GameEvent> parseMessage(const std::string& message) {
     if (message == "pause") {
       return PauseEvent{};
     } else if (message == "unpause") {
@@ -84,7 +103,6 @@ class WSServer {
     return std::nullopt;
   }
 
-  // Echoes back all received WebSocket messages
   void do_session(tcp::socket socket) {
     try {
       // Construct the stream by moving in the socket
@@ -112,13 +130,14 @@ class WSServer {
         std::string message = beast::buffers_to_string(buffer.data());
 
         // Parse message to GameEvent
-        auto event = parseMessage(message);
+        auto&& event = parseMessage(message);
         if (event.has_value()) {
           // Process the event
-          processGameEvent(event.value());
+          game_runner_->addEvent(std::move(event.value()));
 
           // Send acknowledgment or game state update
           std::string response = "Event processed: " + message;
+          std::cout << "Received event: " << message << std::endl;
           ws.text(true);
           ws.write(net::buffer(response));
         } else {
@@ -136,26 +155,4 @@ class WSServer {
       std::cerr << "Error: " << e.what() << std::endl;
     }
   }
-
-  // Process GameEvent
-  void processGameEvent(const GameEvent& event) {
-    std::visit(
-        [](const auto& e) {
-          using T = std::decay_t<decltype(e)>;
-          if constexpr (std::is_same_v<T, AddCellEvent>) {
-            std::cout << "AddCell event: x=" << e.x << ", y=" << e.y
-                      << std::endl;
-            // TODO: Add cell to game state
-          } else if constexpr (std::is_same_v<T, PauseEvent>) {
-            std::cout << "Pause event received" << std::endl;
-            // TODO: Pause game
-          } else if constexpr (std::is_same_v<T, UnPauseEvent>) {
-            std::cout << "Unpause event received" << std::endl;
-            // TODO: Unpause game
-          }
-        },
-        event);
-  }
-
-  void onMessage(const std::string& message);
 };
