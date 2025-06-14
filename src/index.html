@@ -45,156 +45,162 @@
     </style>
 </head>
 <body>
-    <h1>Game of Life</h1>
-    <div id="status" class="disconnected">Connecting to WebSocket...</div>
-    <canvas id="gameCanvas"></canvas>
+<h1>Game of Life</h1>
+<div id="status" class="disconnected">Connecting to WebSocket...</div>
+<canvas id="gameCanvas"></canvas>
 
-    <script>
-        // Game configuration
-        const GRID_SIZE = 50;
-        
-        // Calculate canvas size based on window size
-        function calculateCanvasSize() {
-            const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
-            // Leave some margin for UI elements (header, status, etc.)
-            const availableWidth = windowWidth - 50;
-            const availableHeight = windowHeight - 100;
-            
-            // Use the smaller dimension to keep it square
-            const size = Math.min(availableWidth, availableHeight, 800); // Max 800px
-            return Math.max(size, 300); // Min 300px
+<script>
+    // Game configuration
+    const GRID_SIZE = 50;
+
+    // Calculate canvas size based on window size
+    function calculateCanvasSize() {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Leave some margin for UI elements (header, status, etc.)
+        const availableWidth = windowWidth - 50;
+        const availableHeight = windowHeight - 100;
+
+        // Use the smaller dimension to keep it square
+        const size = Math.min(availableWidth, availableHeight, 800); // Max 800px
+        return Math.max(size, 300); // Min 300px
+    }
+
+    let CANVAS_SIZE = calculateCanvasSize();
+    let CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
+
+    // Get canvas and context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusElement = document.getElementById('status');
+
+    // Set canvas size
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
+
+    // Game state - 100x100 grid
+    let gameState = new Array(GRID_SIZE * GRID_SIZE).fill(0);
+
+    // Track hovered cell
+    let hoveredCell = { x: -1, y: -1 };
+
+    // WebSocket connection - через nginx прокси
+    const socket = new WebSocket("ws://127.0.0.1:8080");
+
+    // Connection opened
+    socket.addEventListener('open', (event) => {
+        statusElement.textContent = 'Connected to WebSocket';
+        statusElement.className = 'connected';
+    });
+
+    // Connection closed
+    socket.addEventListener('close', (event) => {
+        statusElement.textContent = 'Disconnected from WebSocket';
+        statusElement.className = 'disconnected';
+    });
+
+    // Listen for messages - expecting array of 10000 bytes
+    socket.addEventListener('message', (event) => {
+        if (event.data instanceof ArrayBuffer) {
+            const bytes = new Uint8Array(event.data);
+            if (bytes.length === GRID_SIZE * GRID_SIZE) {
+                gameState = Array.from(bytes);
+                drawGrid();
+            }
+        } else if (typeof event.data === 'string') {
+            // Handle string data as binary
+            const bytes = new Uint8Array(event.data.length);
+            for (let i = 0; i < event.data.length; i++) {
+                bytes[i] = event.data.charCodeAt(i);
+            }
+            if (bytes.length === GRID_SIZE * GRID_SIZE) {
+                gameState = Array.from(bytes);
+                drawGrid();
+            }
         }
-        
-        let CANVAS_SIZE = calculateCanvasSize();
-        let CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
-        
-        // Get canvas and context
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const statusElement = document.getElementById('status');
-        
-        // Set canvas size
+    });
+
+    // Draw the grid
+    function drawGrid() {
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+        for (let x = 0; x < GRID_SIZE; x++) {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                const index = y * GRID_SIZE + x;
+                const isAlive = gameState[index] > 0;
+
+                // Draw cell
+                ctx.fillStyle = isAlive ? '#ffffff' : '#000000';
+                ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+                // Draw grid lines (red if hovered, gray otherwise)
+                if (hoveredCell.x === x && hoveredCell.y === y) {
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.strokeStyle = '#cccccc';
+                    ctx.lineWidth = 0.2;
+                }
+                ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+        }
+    }
+
+    // Handle mouse clicks
+    canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
+        const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
+
+        // Send coordinates to server
+        if (socket.readyState === WebSocket.OPEN) {
+            // Создаем буфер для двух 32-битных целых чисел (8 байт)
+            const buffer = new ArrayBuffer(8);
+            // Создаем представление для записи значений
+            const view = new Uint32Array(buffer);
+            // Записываем значения x и y
+            view[0] = x;
+            view[1] = y;
+            // Отправляем бинарные данные
+            socket.send(buffer);
+        }
+    });
+
+    // Handle mouse movement for hover effect
+    canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
+        const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
+
+        // Update hovered cell if it changed
+        if (hoveredCell.x !== x || hoveredCell.y !== y) {
+            hoveredCell.x = x;
+            hoveredCell.y = y;
+            drawGrid();
+        }
+    });
+
+    // Clear hover effect when mouse leaves canvas
+    canvas.addEventListener('mouseleave', () => {
+        if (hoveredCell.x !== -1 || hoveredCell.y !== -1) {
+            hoveredCell.x = -1;
+            hoveredCell.y = -1;
+            drawGrid();
+        }
+    });
+
+    // Initial draw
+    drawGrid();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        CANVAS_SIZE = calculateCanvasSize();
+        CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
         canvas.width = CANVAS_SIZE;
         canvas.height = CANVAS_SIZE;
-        
-        // Game state - 100x100 grid
-        let gameState = new Array(GRID_SIZE * GRID_SIZE).fill(0);
-        
-        // Track hovered cell
-        let hoveredCell = { x: -1, y: -1 };
-        
-        // WebSocket connection - через nginx прокси
-        const socket = new WebSocket("ws://127.0.0.1:8080");
-
-        // Connection opened
-        socket.addEventListener('open', (event) => {
-            statusElement.textContent = 'Connected to WebSocket';
-            statusElement.className = 'connected';
-        });
-        
-        // Connection closed
-        socket.addEventListener('close', (event) => {
-            statusElement.textContent = 'Disconnected from WebSocket';
-            statusElement.className = 'disconnected';
-        });
-        
-        // Listen for messages - expecting array of 10000 bytes
-        socket.addEventListener('message', (event) => {
-            if (event.data instanceof ArrayBuffer) {
-                const bytes = new Uint8Array(event.data);
-                if (bytes.length === GRID_SIZE * GRID_SIZE) {
-                    gameState = Array.from(bytes);
-                    drawGrid();
-                }
-            } else if (typeof event.data === 'string') {
-                // Handle string data as binary
-                const bytes = new Uint8Array(event.data.length);
-                for (let i = 0; i < event.data.length; i++) {
-                    bytes[i] = event.data.charCodeAt(i);
-                }
-                if (bytes.length === GRID_SIZE * GRID_SIZE) {
-                    gameState = Array.from(bytes);
-                    drawGrid();
-                }
-            }
-        });
-        
-        // Draw the grid
-        function drawGrid() {
-            ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-            
-            for (let x = 0; x < GRID_SIZE; x++) {
-                for (let y = 0; y < GRID_SIZE; y++) {
-                    const index = y * GRID_SIZE + x;
-                    const isAlive = gameState[index] > 0;
-                    
-                    // Draw cell
-                    ctx.fillStyle = isAlive ? '#ffffff' : '#000000';
-                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    
-                    // Draw grid lines (red if hovered, gray otherwise)
-                    if (hoveredCell.x === x && hoveredCell.y === y) {
-                        ctx.strokeStyle = '#ff0000';
-                        ctx.lineWidth = 2;
-                    } else {
-                        ctx.strokeStyle = '#cccccc';
-                        ctx.lineWidth = 0.2;
-                    }
-                    ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                }
-            }
-        }
-        
-        // Handle mouse clicks
-        canvas.addEventListener('click', (event) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
-            const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
-            
-            // Send coordinates to server
-            if (socket.readyState === WebSocket.OPEN) {
-                const message = `${x},${y}`;
-                socket.send(message);
-                // statusElement.textContent = `Clicked cell: (${x}, ${y})`;
-            }
-        });
-        
-        // Handle mouse movement for hover effect
-        canvas.addEventListener('mousemove', (event) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
-            const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
-            
-            // Update hovered cell if it changed
-            if (hoveredCell.x !== x || hoveredCell.y !== y) {
-                hoveredCell.x = x;
-                hoveredCell.y = y;
-                drawGrid();
-            }
-        });
-        
-        // Clear hover effect when mouse leaves canvas
-        canvas.addEventListener('mouseleave', () => {
-            if (hoveredCell.x !== -1 || hoveredCell.y !== -1) {
-                hoveredCell.x = -1;
-                hoveredCell.y = -1;
-                drawGrid();
-            }
-        });
-        
-        // Initial draw
         drawGrid();
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            CANVAS_SIZE = calculateCanvasSize();
-            CELL_SIZE = CANVAS_SIZE / GRID_SIZE;
-            canvas.width = CANVAS_SIZE;
-            canvas.height = CANVAS_SIZE;
-            drawGrid();
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
