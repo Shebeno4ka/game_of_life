@@ -5,8 +5,15 @@
 #include <iostream>
 
 int main(int argc, char* argv[]) {
-    auto ws_server_ptr = std::make_unique<network::WebSocketServer>("127.0.0.1", 8080);
+    std::cout << "Starting game server..." << std::endl;
+    auto ws_server_ptr = std::make_unique<network::WebSocketServer>("0.0.0.0", 8080);
     LifeGame::GameServer game_server(std::move(ws_server_ptr));
+
+    game_server.start();
+
+    std::cout << "Game server is up!" << std::endl;
+    while (true) {
+    }
 
     // boost::asio::ip::address ip = boost::asio::ip::address::from_string("0.0.0.0");
     // network::WebSocketServer ws(ip, 8080);
