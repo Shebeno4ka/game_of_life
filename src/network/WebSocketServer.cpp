@@ -7,10 +7,10 @@
 
 using namespace network;
 
-WebSocketServer::WebSocketServer(asio::io_context &ioContext, uint16_t port, const std::string &address)
-    : ioContext_(ioContext), acceptor_(ioContext, tcp::endpoint(asio::ip::make_address(address), port)),
-      nextConnectionId_(0)
-{
+WebSocketServer::WebSocketServer(asio::io_context &ioContext, boost::asio::ip::address ip, uint16_t port)
+    : ioContext_(ioContext)
+    , acceptor_(ioContext, tcp::endpoint(ip, port))
+    , nextConnectionId_(0)  {
 }
 
 void WebSocketServer::setMessageCallback(MessageCallback cb)

@@ -31,7 +31,7 @@ using namespace std::chrono_literals;
 class GameServer
 {
   public:
-    explicit GameServer(uint16_t port, std::chrono::milliseconds sendTimeoutMs = 5000ms,
+    explicit GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs = 5000ms,
                         std::chrono::milliseconds stepIntervalMs = 50ms);
     ~GameServer();
 
