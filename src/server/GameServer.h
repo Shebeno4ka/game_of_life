@@ -32,7 +32,7 @@ class GameServer
 {
   public:
     explicit GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs = 5000ms,
-                        std::chrono::milliseconds stepIntervalMs = 50ms);
+                        std::chrono::milliseconds stepIntervalMs = 10000ms);
     ~GameServer();
 
     // Управление сервером
@@ -56,7 +56,6 @@ class GameServer
 
   private:
     // Основные компоненты
-    boost::asio::io_context ioContext_;
     GameSimulator simulator_;
     network::WebSocketServer webSocketServer_;
     MPSCQueue<GameEvent> events_;

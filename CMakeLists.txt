@@ -15,7 +15,6 @@ set(SOURCES
     src/core/GameSimulator.cpp
     src/server/GameServer.cpp
     src/network/WebSocketServer.cpp
-    src/utils/AsyncUtils.cpp
 )
 
 # Заголовочные файлы

@@ -22,7 +22,7 @@ namespace network {
         using Connection = websocket::stream<tcp::socket>;
         using ConnectionId = uint64_t;
 
-        explicit WebSocketServer(asio::io_context& ioContext, boost::asio::ip::address ip, uint16_t port);
+        WebSocketServer(asio::ip::address ip, uint16_t port);
 
         void setMessageCallback(MessageCallback cb);
 
@@ -43,7 +43,8 @@ namespace network {
                                           std::vector<std::byte>& data,
                                           std::chrono::milliseconds timeout);
 
-        asio::io_context& ioContext_;
+        asio::io_context ioContext_;
+        std::thread ioThread_;
         tcp::acceptor acceptor_;
         ConnectionId nextConnectionId_;
         std::unordered_map<ConnectionId, Connection&> connections_; // from id to connection

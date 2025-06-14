@@ -5,7 +5,7 @@
 namespace LifeGame {
 
 GameServer::GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs, std::chrono::milliseconds stepIntervalMs)
-          : webSocketServer_(ioContext_, ip, port)
+          : webSocketServer_(ip, port)
           , stepIntervalMs_(stepIntervalMs)
           , sendTimeoutMs_(sendTimeoutMs)
           , running_(false) {

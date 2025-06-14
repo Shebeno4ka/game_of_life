@@ -7,10 +7,9 @@
 
 using namespace network;
 
-WebSocketServer::WebSocketServer(asio::io_context &ioContext, boost::asio::ip::address ip, uint16_t port)
-    : ioContext_(ioContext)
-    , acceptor_(ioContext, tcp::endpoint(ip, port))
-    , nextConnectionId_(0)  {
+WebSocketServer::WebSocketServer(boost::asio::ip::address ip, uint16_t port)
+        : acceptor_(ioContext_, tcp::endpoint(ip, port))
+        , nextConnectionId_(0)  {
 
 }
 
@@ -20,15 +19,18 @@ void WebSocketServer::setMessageCallback(MessageCallback cb) {
 
 void WebSocketServer::start() {
     acceptLoop();
+    ioThread_ = std::thread([this](){ioContext_.run();});
 }
 
 void WebSocketServer::stop() {
+    ioContext_.stop();
     std::scoped_lock lock(mutex_);
     for (auto& [id, ws] : connections_) {
         boost::system::error_code ignored;
         ws.next_layer().cancel(ignored);
     }
     connections_.clear();
+    ioThread_.join();
 }
 
 asio::awaitable<void> WebSocketServer::sendMessage(
@@ -72,14 +74,16 @@ std::future<void> WebSocketServer::sendToAllClients(
         std::vector<std::byte> data
         , std::chrono::milliseconds timeout) {
     std::vector<asio::awaitable<void>> tasks;
+
+    auto sharedResources = std::make_unique<std::vector<std::byte>>(std::move(data));
     {
         std::scoped_lock lock(mutex_);
         for (auto& [id, ws] : connections_) {
-            tasks.emplace_back(sendMessage(id, ws, data, timeout));
+            tasks.emplace_back(sendMessage(id, ws, *sharedResources, timeout));
         }
     }
 
-    return runAll(ioContext_, std::move(tasks));
+    return runAll(ioContext_, std::move(tasks), std::move(sharedResources));
 }
 
 void WebSocketServer::acceptLoop() {
@@ -94,6 +98,7 @@ void WebSocketServer::acceptLoop() {
 }
 
 asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
+    ws.binary(true);
     co_await ws.async_accept(asio::use_awaitable);
 
     ConnectionId connectionId;
