@@ -1,0 +1,12 @@
+PROJECT_NAME           = "Game of Life"
+PROJECT_BRIEF          = "Клеточный автомат Конвея с использованием SDL3"
+OUTPUT_DIRECTORY       = docs
+INPUT                  = src README.md
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+USE_MDFILE_AS_MAINPAGE = README.md
+INCLUDE_PATH           = src
+HAVE_DOT               = YES
+UML_LOOK               = YES
