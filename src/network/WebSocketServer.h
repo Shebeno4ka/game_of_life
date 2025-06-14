@@ -22,7 +22,7 @@ namespace network {
         using Connection = websocket::stream<tcp::socket>;
         using ConnectionId = uint64_t;
 
-        explicit WebSocketServer(asio::io_context& ioContext, uint16_t port);
+        explicit WebSocketServer(asio::io_context& ioContext, boost::asio::ip::address ip, uint16_t port);
 
         void setMessageCallback(MessageCallback cb);
 

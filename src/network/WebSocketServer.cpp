@@ -7,9 +7,9 @@
 
 using namespace network;
 
-WebSocketServer::WebSocketServer(asio::io_context &ioContext, uint16_t port)
+WebSocketServer::WebSocketServer(asio::io_context &ioContext, boost::asio::ip::address ip, uint16_t port)
     : ioContext_(ioContext)
-    , acceptor_(ioContext, tcp::endpoint(tcp::v4(), port))
+    , acceptor_(ioContext, tcp::endpoint(ip, port))
     , nextConnectionId_(0)  {
 
 }
