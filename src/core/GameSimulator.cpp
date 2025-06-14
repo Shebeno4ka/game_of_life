@@ -44,15 +44,15 @@ void GameSimulator::performSimulationStep() {
 bool GameSimulator::shouldCellLive(uint32_t x, uint32_t y, const BitField& field) const {
     uint8_t neighbors = field.countNeighbors(x, y);
     bool currentlyAlive = field.isAlive(x, y);
-    
+
     // Правила игры "Жизнь":
     // 1. Живая клетка с 2-3 соседями выживает
     // 2. Мертвая клетка с 3 соседями оживает
     // 3. Во всех остальных случаях клетка умирает или остается мертвой
-    
+
     if (currentlyAlive) {
         return neighbors == 2 || neighbors == 3;
     }
     return neighbors == 3;
-    }
 }
+} // namespace LifeGame

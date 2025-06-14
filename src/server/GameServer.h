@@ -11,8 +11,7 @@
 
 #include "core/GameEvent.h"
 
-namespace LifeGame
-{
+namespace LifeGame {
 
 /**
  * Основной игровой сервер согласно заданному алгоритму:
@@ -28,9 +27,8 @@ namespace LifeGame
  * future.Wait()
  */
 using namespace std::chrono_literals;
-class GameServer
-{
-  public:
+class GameServer {
+   public:
     explicit GameServer(boost::asio::ip::address ip, uint16_t port, std::chrono::milliseconds sendTimeoutMs = 5000ms,
                         std::chrono::milliseconds stepIntervalMs = 10000ms);
     ~GameServer();
@@ -38,23 +36,20 @@ class GameServer
     // Управление сервером
     void start();
     void stop();
-    bool isRunning() const
-    {
+    bool isRunning() const {
         return running_;
     }
 
     // Настройки
-    void setStepInterval(std::chrono::milliseconds intervalMs)
-    {
+    void setStepInterval(std::chrono::milliseconds intervalMs) {
         stepIntervalMs_ = intervalMs;
     }
     void setInitialPattern(BitField pattern);
-    void setSendTimeout(std::chrono::milliseconds timeoutMs)
-    {
+    void setSendTimeout(std::chrono::milliseconds timeoutMs) {
         sendTimeoutMs_ = timeoutMs;
     }
 
-  private:
+   private:
     // Основные компоненты
     GameSimulator simulator_;
     network::WebSocketServer webSocketServer_;

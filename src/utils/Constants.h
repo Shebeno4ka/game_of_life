@@ -20,7 +20,7 @@ constexpr uint32_t SECTOR_SIZE = 128; // Размер сектора для па
 constexpr uint32_t NETWORK_UPDATE_INTERVAL_MS = 150; // Интервал отправки обновлений
 
 // Симуляция
-constexpr uint32_t SIMULATION_STEP_MS = 50;  // Шаг симуляции (20 FPS)
+constexpr uint32_t SIMULATION_STEP_MS = 50; // Шаг симуляции (20 FPS)
 
 // Размер сообщения от клиента
 constexpr int MESSAGE_BYTES_SIZE = sizeof(int32_t) + sizeof(int32_t);
@@ -29,4 +29,4 @@ constexpr int MESSAGE_BYTES_SIZE = sizeof(int32_t) + sizeof(int32_t);
 using Generation = uint64_t;
 using CellIndex = uint32_t;
 
-}
+} // namespace LifeGame

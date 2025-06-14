@@ -12,11 +12,11 @@ namespace LifeGame {
 /**
  * Многопоточная очередь MPSC (Multi Producer Single Consumer)
  */
-template<typename T>
+template <typename T>
 class MPSCQueue {
-public:
+   public:
     MPSCQueue() : closed_(false) {}
-    
+
     ~MPSCQueue() {
         close();
     }
@@ -31,11 +31,11 @@ public:
 
     bool tryPop(T& item) {
         std::unique_lock lock(mutex_);
-        
+
         if (queue_.empty()) {
             return false;
         }
-        
+
         item = std::move(queue_.front());
         queue_.pop();
         return true;
@@ -47,11 +47,11 @@ public:
         while (queue_.empty() && !closed_.load()) {
             condition_.wait(lock);
         }
-        
+
         if (queue_.empty() && closed_.load()) {
             return false;
         }
-        
+
         item = std::move(queue_.front());
         queue_.pop();
         return true;
@@ -67,11 +67,11 @@ public:
         return closed_.load();
     }
 
-private:
+   private:
     mutable std::mutex mutex_;
     std::condition_variable condition_;
     std::queue<T> queue_;
     std::atomic<bool> closed_;
 };
 
-}
+} // namespace LifeGame

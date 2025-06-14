@@ -3,8 +3,7 @@
 
 #include "GameSimulator.h"
 
-struct CellChange
-{
+struct CellChange {
     uint32_t x, y;
     bool alive;
 };
@@ -12,23 +11,18 @@ struct CellChange
 /**
  * Событие от клиента - изменение набора клеток
  */
-struct GameEvent
-{
+struct GameEvent {
     std::vector<CellChange> changes;
 
-    GameEvent(std::vector<CellChange> cellChanges) : changes(std::move(cellChanges))
-    {
-    }
+    GameEvent(std::vector<CellChange> cellChanges) : changes(std::move(cellChanges)) {}
 
     GameEvent() = default;
 
     GameEvent(GameEvent &&) = default;
     GameEvent &operator=(GameEvent &&) = default;
 
-    void Run(LifeGame::GameSimulator &simulator)
-    {
-        for (const auto &[x, y, alive] : changes)
-        {
+    void Run(LifeGame::GameSimulator &simulator) {
+        for (const auto &[x, y, alive] : changes) {
             simulator.applySingleCellChange(x, y, alive);
         }
     }

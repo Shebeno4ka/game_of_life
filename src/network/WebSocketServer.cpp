@@ -8,10 +8,7 @@
 using namespace network;
 
 WebSocketServer::WebSocketServer(boost::asio::ip::address ip, uint16_t port)
-        : acceptor_(ioContext_, tcp::endpoint(ip, port))
-        , nextConnectionId_(0)  {
-
-}
+    : acceptor_(ioContext_, tcp::endpoint(ip, port)), nextConnectionId_(0) {}
 
 void WebSocketServer::setMessageCallback(MessageCallback cb) {
     messageCallback_ = std::move(cb);
@@ -19,7 +16,7 @@ void WebSocketServer::setMessageCallback(MessageCallback cb) {
 
 void WebSocketServer::start() {
     acceptLoop();
-    ioThread_ = std::thread([this](){ioContext_.run();});
+    ioThread_ = std::thread([this]() { ioContext_.run(); });
 }
 
 void WebSocketServer::stop() {
@@ -33,25 +30,23 @@ void WebSocketServer::stop() {
     ioThread_.join();
 }
 
-asio::awaitable<void> WebSocketServer::sendMessage(
-        ConnectionId connectionId
-        , Connection &ws
-        , std::vector<std::byte> &data
-        , std::chrono::milliseconds timeout) {
+asio::awaitable<void> WebSocketServer::sendMessage(ConnectionId connectionId, Connection& ws,
+                                                   std::vector<std::byte>& data, std::chrono::milliseconds timeout) {
     auto timer = asio::steady_timer(co_await asio::this_coro::executor);
     boost::system::error_code ecWrite, ecTimer;
     std::atomic<bool> writeDone = false;
 
     timer.expires_after(timeout);
 
-    asio::co_spawn(ioContext_, [&ws, &data, &writeDone, &timer, &ecWrite]() -> asio::awaitable<void> {
-        co_await ws.async_write(
-            asio::buffer(data),
-            asio::redirect_error(asio::use_awaitable, ecWrite));
-        writeDone.store(true);
-        timer.cancel();
-        co_return;
-    }, asio::detached);
+    asio::co_spawn(
+        ioContext_,
+        [&ws, &data, &writeDone, &timer, &ecWrite]() -> asio::awaitable<void> {
+            co_await ws.async_write(asio::buffer(data), asio::redirect_error(asio::use_awaitable, ecWrite));
+            writeDone.store(true);
+            timer.cancel();
+            co_return;
+        },
+        asio::detached);
 
     co_await timer.async_wait(asio::redirect_error(asio::use_awaitable, ecTimer));
 
@@ -69,10 +64,7 @@ asio::awaitable<void> WebSocketServer::sendMessage(
     }
 }
 
-
-std::future<void> WebSocketServer::sendToAllClients(
-        std::vector<std::byte> data
-        , std::chrono::milliseconds timeout) {
+std::future<void> WebSocketServer::sendToAllClients(std::vector<std::byte> data, std::chrono::milliseconds timeout) {
     std::vector<asio::awaitable<void>> tasks;
 
     auto sharedResources = std::make_unique<std::vector<std::byte>>(std::move(data));
@@ -87,8 +79,7 @@ std::future<void> WebSocketServer::sendToAllClients(
 }
 
 void WebSocketServer::acceptLoop() {
-    acceptor_.async_accept(
-    [this](boost::system::error_code ec, tcp::socket socket) {
+    acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket socket) {
         if (!ec) {
             auto ws = Connection(std::move(socket));
             asio::co_spawn(ioContext_, handleSession(std::move(ws)), asio::detached);
