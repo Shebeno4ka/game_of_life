@@ -32,6 +32,7 @@ void GameServer::stop() {
         return;
     }
     running_ = false;
+    events_.close();
     webSocketServer_.stop();
 
     if (gameThread_.joinable()) {
@@ -60,7 +61,6 @@ void GameServer::gameLoop() {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
-
         sendFuture.get();
     }
 }
