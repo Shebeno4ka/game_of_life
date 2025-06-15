@@ -4,9 +4,10 @@
 
 namespace LifeGame {
 
-GameServer::GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std::chrono::milliseconds sendTimeoutMs,
-                       std::chrono::milliseconds stepIntervalMs)
+GameServer::GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std::unique_ptr<GameSimulator> simulator,
+                       std::chrono::milliseconds sendTimeoutMs, std::chrono::milliseconds stepIntervalMs)
     : webSocketServer_(std::move(ws_server)),
+      simulator_(std::move(simulator)),
       stepIntervalMs_(stepIntervalMs),
       sendTimeoutMs_(sendTimeoutMs),
       running_(false) {
@@ -14,10 +15,10 @@ GameServer::GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std:
     if (!logger_) {
         logger_ = spdlog::default_logger();
     }
-    
+
     webSocketServer_->setMessageCallback([this](std::vector<std::byte> data) { onClientMessage(std::move(data)); });
-    logger_->info("GameServer initialized with step interval {}ms, send timeout {}ms", 
-                  stepIntervalMs_.count(), sendTimeoutMs_.count());
+    logger_->info("GameServer initialized with step interval {}ms, send timeout {}ms", stepIntervalMs_.count(),
+                  sendTimeoutMs_.count());
 }
 
 GameServer::~GameServer() {
@@ -31,7 +32,7 @@ void GameServer::start() {
     }
     running_ = true;
     logger_->info("Starting GameServer");
-    
+
     try {
         webSocketServer_->start();
         gameThread_ = std::thread(&GameServer::gameLoop, this);
@@ -48,7 +49,7 @@ void GameServer::stop() {
         return;
     }
     logger_->info("Stopping GameServer");
-    
+
     running_.store(false);
     events_.close();
     webSocketServer_->stop();
@@ -60,20 +61,20 @@ void GameServer::stop() {
 }
 
 void GameServer::setInitialPattern(BitField pattern) {
-    simulator_.setInitialPattern(std::move(pattern));
+    simulator_->setInitialPattern(std::move(pattern));
     logger_->debug("Initial pattern set");
 }
 
 void GameServer::gameLoop() {
     logger_->info("Game loop started");
     size_t stepCount = 0;
-    
+
     while (running_) {
         auto stepStartTime = std::chrono::steady_clock::now();
-        simulator_.step();
+        simulator_->step();
         stepCount++;
 
-        auto currentState = simulator_.getStateData();
+        auto currentState = simulator_->getStateData();
         auto sendFuture = webSocketServer_->sendToAllClients(std::move(currentState), sendTimeoutMs_);
 
         size_t eventsProcessed = 0;
@@ -81,13 +82,13 @@ void GameServer::gameLoop() {
         while (std::chrono::steady_clock::now() < stepEndTime) {
             GameEvent event;
             if (events_.tryPop(event)) {
-                event.Run(simulator_);
+                event.Run(*simulator_);
                 eventsProcessed++;
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
-        
+
         try {
             sendFuture.get();
         } catch (const std::exception& e) {
@@ -107,7 +108,7 @@ void GameServer::onClientMessage(std::vector<std::byte> data) {
         logger_->warn("Received invalid client message");
         return;
     }
-    
+
     GameEvent event(std::move(changes));
     events_.push(std::move(event));
     logger_->debug("Processed client message with {} changes", changes.size());

@@ -30,7 +30,8 @@ namespace LifeGame {
 using namespace std::chrono_literals;
 class GameServer {
    public:
-    explicit GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
+    GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
+                        std::unique_ptr<GameSimulator> simulator,
                         std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
                         std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS);
     ~GameServer();
@@ -53,7 +54,7 @@ class GameServer {
 
    private:
     // Основные компоненты
-    GameSimulator simulator_;
+    std::unique_ptr<GameSimulator> simulator_;
     std::unique_ptr<network::WebSocketServer> webSocketServer_;
     MPSCQueue<GameEvent> events_;
     std::shared_ptr<spdlog::logger> logger_;
