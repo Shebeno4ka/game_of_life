@@ -4,6 +4,9 @@
 
 namespace LifeGame {
 
+GameSimulator::GameSimulator(uint32_t fieldWidth, uint32_t fieldHeight)
+    : currentField_(fieldWidth, fieldHeight), nextField_(fieldWidth, fieldHeight) {}
+
 void GameSimulator::step() {
     performSimulationStep();
 }
@@ -31,8 +34,8 @@ void GameSimulator::clearField() {
 
 void GameSimulator::performSimulationStep() {
     nextField_.clear();
-    for (uint32_t i = 0; i < FIELD_HEIGHT; ++i) {
-        for (uint32_t j = 0; j < FIELD_WIDTH; ++j) {
+    for (uint32_t i = 0; i < nextField_.height(); ++i) {
+        for (uint32_t j = 0; j < nextField_.width(); ++j) {
             if (shouldCellLive(i, j, currentField_)) {
                 nextField_.setAlive(i, j, true);
             }
