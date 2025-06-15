@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <vector>
 
@@ -14,7 +16,7 @@ struct CellChange {
 struct GameEvent {
     std::vector<CellChange> changes;
 
-    GameEvent(std::vector<CellChange> cellChanges) : changes(std::move(cellChanges)) {}
+    explicit GameEvent(std::vector<CellChange> cellChanges) : changes(std::move(cellChanges)) {}
 
     GameEvent() = default;
 
