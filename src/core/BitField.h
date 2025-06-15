@@ -45,7 +45,7 @@ class BitField {
 
     // Вспомогательные методы
     inline uint32_t getIndex(uint32_t x, uint32_t y) const {
-        return y * FIELD_WIDTH + x;
+        return y * width_ + x;
     }
 
     inline uint32_t getByteIndex(uint32_t index) const {

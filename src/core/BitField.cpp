@@ -15,7 +15,9 @@ BitField::BitField(uint32_t width, uint32_t height)
     clear();
 }
 
-BitField::BitField(BitField&& other) noexcept : data_(other.data_) {
+BitField::BitField(BitField&& other) noexcept : width_(other.width_), height_(other.height_), data_(other.data_) {
+    other.width_ = 0;
+    other.height_ = 0;
     other.data_ = nullptr;
 }
 
@@ -23,7 +25,11 @@ BitField& BitField::operator=(BitField&& other) noexcept {
     if (this != &other) {
         deallocateMemory();
         data_ = other.data_;
+        width_ = other.width_;
+        height_ = other.height_;
         other.data_ = nullptr;
+        other.width_ = 0;
+        other.height_ = 0;
     }
     return *this;
 }
