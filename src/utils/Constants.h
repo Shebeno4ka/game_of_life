@@ -6,8 +6,8 @@
 namespace LifeGame {
 
 // Размер игрового поля (фиксированный)
-constexpr uint32_t FIELD_WIDTH = 100;
-constexpr uint32_t FIELD_HEIGHT = 100;
+constexpr uint32_t FIELD_WIDTH = 10;
+constexpr uint32_t FIELD_HEIGHT = 10;
 constexpr uint32_t FIELD_SIZE = FIELD_WIDTH * FIELD_HEIGHT;
 
 // Размер в байтах для битового поля
