@@ -51,7 +51,7 @@
 
 <script>
     // Game configuration
-    const GRID_SIZE = 50;
+    const GRID_SIZE = 10;
 
     // Calculate canvas size based on window size
     function calculateCanvasSize() {
@@ -101,26 +101,36 @@
     });
 
     // Listen for messages - expecting array of 10000 bytes
-    socket.addEventListener('message', (event) => {
-        if (event.data instanceof ArrayBuffer) {
-            const bytes = new Uint8Array(event.data);
-            if (bytes.length === GRID_SIZE * GRID_SIZE) {
-                gameState = Array.from(bytes);
+socket.addEventListener('message', (event) => {
+    if (event.data instanceof Blob) {
+        // Читаем Blob как ArrayBuffer
+        event.data.arrayBuffer().then(buffer => {
+            const compressedData = new Uint8Array(buffer);
+            
+            // Ожидаем 1250 байт для поля 100x100 (8 ячеек на байт)
+            if (compressedData.length === GRID_SIZE * GRID_SIZE / 8) {
+                // Распаковываем сжатые данные
+                for (let byteIndex = 0; byteIndex < compressedData.length; byteIndex++) {
+                    const byte = compressedData[byteIndex];
+                    
+                    // Извлекаем 8 бит из каждого байта
+                    for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
+                        const cellIndex = byteIndex * 8 + bitIndex;
+                        
+                        // Проверяем, что не выходим за границы массива
+                        if (cellIndex < gameState.length) {
+                            // Извлекаем бит (начиная с младшего)
+                            gameState[cellIndex] = (byte >> bitIndex) & 1;
+                        }
+                    }
+                }
+                
+                // Перерисовываем поле после получения новых данных
                 drawGrid();
             }
-        } else if (typeof event.data === 'string') {
-            // Handle string data as binary
-            const bytes = new Uint8Array(event.data.length);
-            for (let i = 0; i < event.data.length; i++) {
-                bytes[i] = event.data.charCodeAt(i);
-            }
-            if (bytes.length === GRID_SIZE * GRID_SIZE) {
-                gameState = Array.from(bytes);
-                drawGrid();
-            }
-        }
-    });
-
+        });
+    }
+});
     // Draw the grid
     function drawGrid() {
         ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
@@ -129,9 +139,15 @@
             for (let y = 0; y < GRID_SIZE; y++) {
                 const index = y * GRID_SIZE + x;
                 const isAlive = gameState[index] > 0;
+                // Проверка, является ли клетка активированной (выбранной пользователем)
+                const isActivated = activatedCells.some(cell => cell.x === x && cell.y === y);
 
-                // Draw cell
-                ctx.fillStyle = isAlive ? '#ffffff' : '#000000';
+                // Draw cell: желтым, если активирована, белым, если живая, черным иначе
+                if (isActivated) {
+                    ctx.fillStyle = '#ffff00'; // Желтый цвет для активированных клеток
+                } else {
+                    ctx.fillStyle = isAlive ? '#ffffff' : '#000000';
+                }
                 ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 
                 // Draw grid lines (red if hovered, gray otherwise)
@@ -147,23 +163,36 @@
         }
     }
 
+    // Массив для хранения координат активированных клеток
+    let activatedCells = [];
+
     // Handle mouse clicks
     canvas.addEventListener('click', (event) => {
         const rect = canvas.getBoundingClientRect();
         const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
         const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
 
-        // Send coordinates to server
-        if (socket.readyState === WebSocket.OPEN) {
-            // Создаем буфер для двух 32-битных целых чисел (8 байт)
-            const buffer = new ArrayBuffer(8);
-            // Создаем представление для записи значений
+        // Добавляем координаты в массив, если их там еще нет
+        if (!activatedCells.some(cell => cell.x === x && cell.y === y)) {
+            activatedCells.push({ x, y });
+        } else {
+            // Удаляем координаты, если они уже есть
+            activatedCells = activatedCells.filter(cell => !(cell.x === x && cell.y === y));
+        }
+    });
+
+    // Отправка накопленных координат по нажатию пробела
+    window.addEventListener('keydown', (event) => {
+        if (event.code === 'Space' && activatedCells.length > 0 && socket.readyState === WebSocket.OPEN) {
+            // Создаем буфер для всех координат (каждая пара x, y — по 4 байта на число)
+            const buffer = new ArrayBuffer(activatedCells.length * 8);
             const view = new Uint32Array(buffer);
-            // Записываем значения x и y
-            view[0] = x;
-            view[1] = y;
-            // Отправляем бинарные данные
+            activatedCells.forEach((cell, i) => {
+                view[i * 2] = cell.x;
+                view[i * 2 + 1] = cell.y;
+            });
             socket.send(buffer);
+            activatedCells = [];
         }
     });
 
