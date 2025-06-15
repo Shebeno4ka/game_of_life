@@ -12,12 +12,15 @@ namespace LifeGame {
  */
 class BitField {
    public:
-    BitField();
+    explicit BitField(uint32_t width, uint32_t height);
     BitField(const BitField& other) = delete;
     BitField(BitField&& other) noexcept;
     BitField& operator=(const BitField& other) = delete;
     BitField& operator=(BitField&& other) noexcept;
     ~BitField();
+
+    inline uint32_t width() const {return width_;}
+    inline uint32_t height() const {return height_;}
 
     // Основные операции с клетками
     bool isAlive(uint32_t x, uint32_t y) const;
@@ -36,11 +39,13 @@ class BitField {
     uint32_t getAliveCellCount() const;
 
    private:
+    uint32_t width_;
+    uint32_t height_;
     uint8_t* data_;
 
     // Вспомогательные методы
     inline uint32_t getIndex(uint32_t x, uint32_t y) const {
-        return y * FIELD_WIDTH + x;
+        return y * width_ + x;
     }
 
     inline uint32_t getByteIndex(uint32_t index) const {
@@ -49,6 +54,10 @@ class BitField {
 
     inline uint8_t getBitMask(uint32_t index) const {
         return 1 << (index % 8);
+    }
+
+    inline uint32_t fieldBytes() const {
+        return (width_ * height_ + 7) / 8;
     }
 
     void allocateAlignedMemory();

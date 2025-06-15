@@ -7,12 +7,17 @@
 
 namespace LifeGame {
 
-BitField::BitField() : data_(nullptr) {
+BitField::BitField(uint32_t width, uint32_t height)
+        : width_(width)
+        , height_(height)
+        , data_(nullptr) {
     allocateAlignedMemory();
     clear();
 }
 
-BitField::BitField(BitField&& other) noexcept : data_(other.data_) {
+BitField::BitField(BitField&& other) noexcept : width_(other.width_), height_(other.height_), data_(other.data_) {
+    other.width_ = 0;
+    other.height_ = 0;
     other.data_ = nullptr;
 }
 
@@ -20,7 +25,11 @@ BitField& BitField::operator=(BitField&& other) noexcept {
     if (this != &other) {
         deallocateMemory();
         data_ = other.data_;
+        width_ = other.width_;
+        height_ = other.height_;
         other.data_ = nullptr;
+        other.width_ = 0;
+        other.height_ = 0;
     }
     return *this;
 }
@@ -30,7 +39,7 @@ BitField::~BitField() {
 }
 
 bool BitField::isAlive(uint32_t x, uint32_t y) const {
-    if (x >= FIELD_WIDTH || y >= FIELD_HEIGHT) {
+    if (x >= width_ || y >= height_) {
         return false;
     }
 
@@ -42,7 +51,7 @@ bool BitField::isAlive(uint32_t x, uint32_t y) const {
 }
 
 void BitField::setAlive(uint32_t x, uint32_t y, bool alive) {
-    if (x >= FIELD_WIDTH || y >= FIELD_HEIGHT) {
+    if (x >= width_ || y >= height_) {
         return;
     }
 
@@ -58,7 +67,7 @@ void BitField::setAlive(uint32_t x, uint32_t y, bool alive) {
 }
 
 void BitField::toggleCell(uint32_t x, uint32_t y) {
-    if (x >= FIELD_WIDTH || y >= FIELD_HEIGHT) {
+    if (x >= width_ || y >= height_) {
         return;
     }
 
@@ -70,15 +79,15 @@ void BitField::toggleCell(uint32_t x, uint32_t y) {
 }
 
 std::vector<std::byte> BitField::getData() const {
-    std::vector<std::byte> data(FIELD_BYTES);
-    std::transform(data_, data_ + FIELD_BYTES, data.begin(), [](char c) { return static_cast<std::byte>(c); });
+    std::vector<std::byte> data(fieldBytes());
+    std::transform(data_, data_ + fieldBytes(), data.begin(), [](char c) { return static_cast<std::byte>(c); });
 
     return data;
 }
 
 void BitField::clear() {
     if (data_) {
-        std::memset(data_, 0, FIELD_BYTES);
+        std::memset(data_, 0, fieldBytes());
     }
 }
 
@@ -95,7 +104,7 @@ uint8_t BitField::countNeighbors(uint32_t x, uint32_t y) const {
             int ny = static_cast<int>(y) + dy;
 
             // Проверяем границы
-            if (nx >= 0 && nx < static_cast<int>(FIELD_WIDTH) && ny >= 0 && ny < static_cast<int>(FIELD_HEIGHT)) {
+            if (nx >= 0 && nx < static_cast<int>(width_) && ny >= 0 && ny < static_cast<int>(height_)) {
                 if (isAlive(static_cast<uint32_t>(nx), static_cast<uint32_t>(ny))) {
                     count++;
                 }
@@ -108,7 +117,7 @@ uint8_t BitField::countNeighbors(uint32_t x, uint32_t y) const {
 
 void BitField::allocateAlignedMemory() {
     // Выравнивание памяти для SIMD операций (32 байта для AVX2)
-    data_ = static_cast<uint8_t*>(std::aligned_alloc(32, FIELD_BYTES));
+    data_ = static_cast<uint8_t*>(std::aligned_alloc(32, fieldBytes()));
     if (!data_) {
         throw std::bad_alloc();
     }
@@ -124,7 +133,7 @@ void BitField::deallocateMemory() {
 uint32_t BitField::getAliveCellCount() const {
     uint32_t count = 0;
 
-    for (size_t i = 0; i < FIELD_BYTES; ++i) {
+    for (size_t i = 0; i < fieldBytes(); ++i) {
         uint8_t byte = data_[i];
         for (int b = 0; b < 8; ++b) {
             count += (byte >> b) & 1;

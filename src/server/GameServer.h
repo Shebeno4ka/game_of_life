@@ -8,12 +8,14 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+
 #include <utility>
+#include <spdlog/spdlog.h>
 
 #include "core/GameEvent.h"
 
-namespace network {
-class WebSocketServer;
+    namespace network {
+    class WebSocketServer;
 }
 
 namespace LifeGame {
@@ -33,7 +35,8 @@ namespace LifeGame {
  */
 using namespace std::chrono_literals;
 class GameServer {
-    GameSimulator simulator_;
+    std::unique_ptr<GameSimulator> simulator_;
+    std::shared_ptr<spdlog::logger> logger_;
     std::unique_ptr<network::WebSocketServer> webSocketServer_;
     MPSCQueue<GameEvent> events_;
     std::chrono::milliseconds stepIntervalMs_;
@@ -42,9 +45,9 @@ class GameServer {
     std::thread gameMainThread_;
 
    public:
-    explicit GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
-                        std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
-                        std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS);
+    GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std::unique_ptr<GameSimulator> simulator,
+               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
+               std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS);
     ~GameServer();
 
     void start();
@@ -68,7 +71,7 @@ class GameServer {
    private:
     void gameLoop();
 
-    void onClientMessage(std::vector<CellChange>&& event);
+    void onClientMessage(std::vector<CellChange>&& changes);
 };
 
 } // namespace LifeGame

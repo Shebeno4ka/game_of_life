@@ -12,6 +12,8 @@ namespace LifeGame {
  */
 class GameSimulator {
    public:
+    explicit GameSimulator(uint32_t fieldWidth = FIELD_WIDTH, uint32_t fieldHeight = FIELD_HEIGHT);
+
     // Основной метод симуляции - выполняет один шаг
     void step();
 

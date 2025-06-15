@@ -8,8 +8,12 @@
 #include <mutex>
 #include <chrono>
 #include <optional>
+
 #include "server/GameServer.h"
 #include "core/GameEvent.h"
+
+#include <spdlog/spdlog.h>
+
 
 namespace network {
 
@@ -51,6 +55,7 @@ class WebSocketServer {
     std::unordered_map<ConnectionId, Connection&> connections_; // from id to connection
     std::mutex mutex_;
     std::optional<MessageCallback> messageCallback_;
+    std::shared_ptr<spdlog::logger> logger_;
 };
 
 } // namespace network
