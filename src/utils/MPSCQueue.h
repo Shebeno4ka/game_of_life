@@ -14,6 +14,11 @@ namespace LifeGame {
  */
 template <typename T>
 class MPSCQueue {
+    mutable std::mutex mutex_;
+    std::condition_variable condition_;
+    std::queue<T> queue_;
+    std::atomic<bool> closed_;
+
    public:
     MPSCQueue() : closed_(false) {}
 
@@ -66,12 +71,6 @@ class MPSCQueue {
     bool isClosed() const {
         return closed_.load();
     }
-
-   private:
-    mutable std::mutex mutex_;
-    std::condition_variable condition_;
-    std::queue<T> queue_;
-    std::atomic<bool> closed_;
 };
 
 } // namespace LifeGame

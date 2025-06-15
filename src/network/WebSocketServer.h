@@ -14,7 +14,6 @@
 
 #include <spdlog/spdlog.h>
 
-
 namespace network {
 
 using tcp = boost::asio::ip::tcp;
@@ -23,11 +22,20 @@ namespace asio = boost::asio;
 using namespace std::chrono_literals;
 
 class WebSocketServer {
-   public:
     using MessageCallback = std::function<void(std::vector<CellChange>)>;
     using Connection = websocket::stream<tcp::socket>;
     using ConnectionId = uint64_t;
 
+    asio::io_context ioContext_;
+    std::thread ioThread_;
+    tcp::acceptor acceptor_;
+    ConnectionId nextConnectionId_;
+    std::unordered_map<ConnectionId, Connection&> connections_; // from id to connection
+    std::mutex mutex_;
+    std::optional<MessageCallback> messageCallback_;
+    std::shared_ptr<spdlog::logger> logger_;
+
+   public:
     WebSocketServer(const std::string& ip, uint16_t port);
 
     void setMessageCallback(MessageCallback cb);
@@ -47,15 +55,6 @@ class WebSocketServer {
                                       std::chrono::milliseconds timeout);
 
     static std::vector<CellChange> parseClientMessage_(std::vector<std::byte> message);
-
-    asio::io_context ioContext_;
-    std::thread ioThread_;
-    tcp::acceptor acceptor_;
-    ConnectionId nextConnectionId_;
-    std::unordered_map<ConnectionId, Connection&> connections_; // from id to connection
-    std::mutex mutex_;
-    std::optional<MessageCallback> messageCallback_;
-    std::shared_ptr<spdlog::logger> logger_;
 };
 
 } // namespace network

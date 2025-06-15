@@ -11,6 +11,9 @@ namespace LifeGame {
  * Чистый симулятор без логики игроков - только симуляция Conway's Game of Life
  */
 class GameSimulator {
+    BitField currentField_;
+    BitField nextField_;
+
    public:
     explicit GameSimulator(uint32_t fieldWidth = FIELD_WIDTH, uint32_t fieldHeight = FIELD_HEIGHT);
 
@@ -23,22 +26,15 @@ class GameSimulator {
     // Получение состояния для сети
     std::vector<std::byte> getStateData() const;
 
-    // Статистика
     uint32_t getAliveCellCount() const;
 
-    // Установка начального состояния
     void setInitialPattern(BitField pattern);
+
     void clearField();
 
    private:
-    // Основные компоненты
-    BitField currentField_;
-    BitField nextField_;
-
-    // Методы симуляции
     void performSimulationStep();
 
-    // Применение правил игры "Жизнь"
     bool shouldCellLive(uint32_t x, uint32_t y, const BitField& field) const;
 };
 
