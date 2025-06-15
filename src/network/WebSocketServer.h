@@ -8,6 +8,8 @@
 #include <mutex>
 #include <chrono>
 #include <optional>
+#include "server/GameServer.h"
+#include "core/GameEvent.h"
 
 namespace network {
 
@@ -18,7 +20,7 @@ using namespace std::chrono_literals;
 
 class WebSocketServer {
    public:
-    using MessageCallback = std::function<void(std::vector<std::byte>)>;
+    using MessageCallback = std::function<void(std::vector<CellChange>)>;
     using Connection = websocket::stream<tcp::socket>;
     using ConnectionId = uint64_t;
 
@@ -39,6 +41,8 @@ class WebSocketServer {
 
     asio::awaitable<void> sendMessage(ConnectionId connectionId, Connection& ws, std::vector<std::byte>& data,
                                       std::chrono::milliseconds timeout);
+
+    static std::vector<CellChange> parseClientMessage_(std::vector<std::byte> message);
 
     asio::io_context ioContext_;
     std::thread ioThread_;

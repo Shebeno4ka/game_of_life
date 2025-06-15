@@ -8,8 +8,13 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <utility>
 
 #include "core/GameEvent.h"
+
+namespace network {
+class WebSocketServer;
+}
 
 namespace LifeGame {
 
@@ -28,49 +33,42 @@ namespace LifeGame {
  */
 using namespace std::chrono_literals;
 class GameServer {
+    GameSimulator simulator_;
+    std::unique_ptr<network::WebSocketServer> webSocketServer_;
+    MPSCQueue<GameEvent> events_;
+    std::chrono::milliseconds stepIntervalMs_;
+    std::chrono::milliseconds sendTimeoutMs_;
+    std::atomic<bool> running_;
+    std::thread gameMainThread_;
+
    public:
     explicit GameServer(std::unique_ptr<network::WebSocketServer> ws_server,
                         std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
                         std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS);
     ~GameServer();
 
-    // Управление сервером
     void start();
+
     void stop();
+
     bool isRunning() const {
         return running_;
     }
 
-    // Настройки
     void setStepInterval(std::chrono::milliseconds intervalMs) {
         stepIntervalMs_ = intervalMs;
     }
+
     void setInitialPattern(BitField pattern);
+
     void setSendTimeout(std::chrono::milliseconds timeoutMs) {
         sendTimeoutMs_ = timeoutMs;
     }
 
    private:
-    // Основные компоненты
-    GameSimulator simulator_;
-    std::unique_ptr<network::WebSocketServer> webSocketServer_;
-    MPSCQueue<GameEvent> events_;
-
-    // Настройки
-    std::chrono::milliseconds stepIntervalMs_;
-    std::chrono::milliseconds sendTimeoutMs_;
-    std::atomic<bool> running_;
-
-    // Главный игровой поток
-    std::thread gameThread_;
-
     void gameLoop();
 
-    // Обработка WebSocket событий
-    void onClientMessage(std::vector<std::byte> data);
-
-    // Парсинг сообщения клиента в события
-    static std::vector<CellChange> parseClientMessage(std::vector<std::byte> message);
+    void onClientMessage(std::vector<CellChange>&& event);
 };
 
 } // namespace LifeGame

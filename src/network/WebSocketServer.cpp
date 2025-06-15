@@ -5,6 +5,7 @@
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
+#include "server/GameServer.h"
 
 using namespace network;
 
@@ -111,11 +112,31 @@ asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
         auto ptr = static_cast<std::byte*>(buffer.data().data());
         std::vector<std::byte> data(ptr, ptr + buffer.size());
 
+        std::vector<CellChange> parsed_events = parseClientMessage_(std::move(data));
+
         if (messageCallback_.has_value()) {
-            (*messageCallback_)(std::move(data));
+            (*messageCallback_)(std::move(parsed_events));
         }
     }
 
     std::scoped_lock lock(mutex_);
     connections_.erase(connectionId);
+}
+
+std::vector<CellChange> WebSocketServer::parseClientMessage_(std::vector<std::byte> message) {
+    if (message.size() % LifeGame::MESSAGE_BYTES_SIZE != 0 || message.empty()) {
+        return {};
+    }
+
+    std::vector<CellChange> changes;
+    changes.reserve(message.size() / LifeGame::MESSAGE_BYTES_SIZE);
+
+    for (size_t i = 0; i < message.size(); i += LifeGame::MESSAGE_BYTES_SIZE) {
+        uint32_t x = static_cast<uint32_t>(message[i]);
+        uint32_t y = static_cast<uint32_t>(message[i + 1]);
+
+        changes.emplace_back(x, y, true);
+    }
+
+    return changes;
 }

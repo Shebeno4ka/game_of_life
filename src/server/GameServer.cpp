@@ -10,7 +10,7 @@ GameServer::GameServer(std::unique_ptr<network::WebSocketServer> ws_server, std:
       stepIntervalMs_(stepIntervalMs),
       sendTimeoutMs_(sendTimeoutMs),
       running_(false) {
-    webSocketServer_->setMessageCallback([this](std::vector<std::byte> data) { onClientMessage(std::move(data)); });
+    webSocketServer_->setMessageCallback([this](std::vector<CellChange> data) { onClientMessage(std::move(data)); });
 }
 
 GameServer::~GameServer() {
@@ -23,7 +23,7 @@ void GameServer::start() {
     }
     running_ = true;
     webSocketServer_->start();
-    gameThread_ = std::thread(&GameServer::gameLoop, this);
+    gameMainThread_ = std::thread(&GameServer::gameLoop, this);
 }
 
 void GameServer::stop() {
@@ -34,8 +34,8 @@ void GameServer::stop() {
     events_.close();
     webSocketServer_->stop();
 
-    if (gameThread_.joinable()) {
-        gameThread_.join();
+    if (gameMainThread_.joinable()) {
+        gameMainThread_.join();
     }
 }
 
@@ -64,28 +64,9 @@ void GameServer::gameLoop() {
     }
 }
 
-void GameServer::onClientMessage(std::vector<std::byte> data) {
-    auto changes = parseClientMessage(std::move(data));
+void GameServer::onClientMessage(std::vector<CellChange>&& changes) {
     GameEvent event(std::move(changes));
     events_.push(std::move(event));
-}
-
-std::vector<CellChange> GameServer::parseClientMessage(std::vector<std::byte> message) {
-    if (message.size() % MESSAGE_BYTES_SIZE != 0 || message.empty()) {
-        return {};
-    }
-
-    std::vector<CellChange> changes;
-    changes.reserve(message.size() / MESSAGE_BYTES_SIZE);
-
-    for (size_t i = 0; i < message.size(); i += MESSAGE_BYTES_SIZE) {
-        uint32_t x = static_cast<uint32_t>(message[i]);
-        uint32_t y = static_cast<uint32_t>(message[i + 1]);
-
-        changes.emplace_back(x, y, true);
-    }
-
-    return changes;
 }
 
 } // namespace LifeGame
