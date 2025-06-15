@@ -8,6 +8,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 #include "core/GameEvent.h"
 
@@ -55,6 +56,7 @@ class GameServer {
     GameSimulator simulator_;
     std::unique_ptr<network::WebSocketServer> webSocketServer_;
     MPSCQueue<GameEvent> events_;
+    std::shared_ptr<spdlog::logger> logger_;
 
     // Настройки
     std::chrono::milliseconds stepIntervalMs_;

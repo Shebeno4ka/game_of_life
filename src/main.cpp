@@ -5,7 +5,7 @@
 #include <iostream>
 
 int main(int argc, char* argv[]) {
-    std::string ip = "127.0.0.1";
+    std::string ip = "0.0.0.0";
     int port = 8080;
 
     if (argc != 3 && argc != 1) {
