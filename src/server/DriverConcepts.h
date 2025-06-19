@@ -25,4 +25,15 @@ concept NetworkDriver = requires(T& driver,
     { driver.stop() } -> std::same_as<void>;
 };
 
+template<typename T>
+concept StepControlStrategy = requires(T strategy) {
+    // Метод для начала шага
+    { strategy.onStepStart() } -> std::same_as<void>;
+
+    // Метод для проверки, следует ли продолжать текущий шаг.
+    { strategy.isStepComplete() } -> std::same_as<bool>;
+
+    { strategy.stop() } -> std::same_as<void>;
+};
+
 } // namespace LifeGame

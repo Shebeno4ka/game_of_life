@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <random>
-#include <utility>
 #include "core/GameSimulator.h"
 #include "core/BitField.h"
 #include "ReferenceGameSimulator.h"

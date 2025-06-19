@@ -2,7 +2,6 @@
 
 #include "core/BitField.h"
 #include <vector>
-#include <cstdint>
 
 
 namespace LifeGame::utils {

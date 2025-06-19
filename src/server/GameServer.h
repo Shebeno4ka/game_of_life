@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FixedStepStrategy.h"
+
 #include <core/GameSimulator.h>
 #include <utils/MPSCQueue.h>
 #include "server/DriverConcepts.h"
@@ -28,26 +30,27 @@ namespace LifeGame {
  *    event.Run()
  * future.Wait()
  */
+
 using namespace std::chrono_literals;
 
-template<NetworkDriver Driver>
+template<NetworkDriver Driver, StepControlStrategy StepStrategy>
 class GameServer {
     std::unique_ptr<GameSimulator> simulator_;
-    std::shared_ptr<spdlog::logger> logger_;
     std::unique_ptr<Driver> networkDriver_;
+    std::unique_ptr<StepStrategy> stepStrategy_;
+    std::shared_ptr<spdlog::logger> logger_;
     MPSCQueue<GameEvent> events_;
-    std::chrono::milliseconds stepIntervalMs_;
     std::chrono::milliseconds sendTimeoutMs_;
     std::atomic<bool> running_;
     std::thread gameMainThread_;
 
    public:
     GameServer(std::unique_ptr<Driver> driver, std::unique_ptr<GameSimulator> simulator,
-               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS,
-               std::chrono::milliseconds stepIntervalMs = SIMULATION_STEP_MS)
+               std::unique_ptr<StepStrategy> stepStrategy,
+               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS)
         : networkDriver_(std::move(driver)),
           simulator_(std::move(simulator)),
-          stepIntervalMs_(stepIntervalMs),
+          stepStrategy_(std::move(stepStrategy)),
           sendTimeoutMs_(sendTimeoutMs),
           running_(false) {
         logger_ = spdlog::get("GameServer");
@@ -56,13 +59,22 @@ class GameServer {
         }
 
         networkDriver_->setMessageCallback([this](std::vector<CellChange> data) { onClientMessage(std::move(data)); });
-        logger_->info("GameServer initialized with step interval {}ms, send timeout {}ms", stepIntervalMs_.count(),
-                      sendTimeoutMs_.count());
+        logger_->info("GameServer initialized with send timeout {}ms", sendTimeoutMs_.count());
+    }
+
+    GameServer(std::unique_ptr<Driver> driver, std::unique_ptr<GameSimulator> simulator,
+               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS)
+        : GameServer(std::move(driver), std::move(simulator), std::make_unique<FixedStepStrategy<SIMULATION_STEP_MS>>(), sendTimeoutMs) {
     }
 
     ~GameServer() {
         stop();
     }
+
+    GameServer(const GameServer&) = delete;
+    GameServer& operator=(const GameServer&) = delete;
+    GameServer(GameServer&&) = delete;
+    GameServer& operator=(GameServer&&) = delete;
 
     void start() {
         if (running_) {
@@ -90,6 +102,7 @@ class GameServer {
         logger_->info("Stopping GameServer");
 
         running_.store(false);
+        stepStrategy_->stop();
         events_.close();
         networkDriver_->stop();
 
@@ -101,10 +114,6 @@ class GameServer {
 
     bool isRunning() const {
         return running_;
-    }
-
-    void setStepInterval(std::chrono::milliseconds intervalMs) {
-        stepIntervalMs_ = intervalMs;
     }
 
     void setInitialPattern(BitField pattern) {
@@ -122,7 +131,7 @@ class GameServer {
         size_t stepCount = 0;
 
         while (running_) {
-            auto stepStartTime = std::chrono::steady_clock::now();
+            stepStrategy_->onStepStart();
             simulator_->step();
             stepCount++;
 
@@ -130,8 +139,7 @@ class GameServer {
             auto sendFuture = networkDriver_->sendToAllClients(std::move(currentState), sendTimeoutMs_);
 
             size_t eventsProcessed = 0;
-            auto stepEndTime = stepStartTime + std::chrono::milliseconds(stepIntervalMs_);
-            while (std::chrono::steady_clock::now() < stepEndTime) {
+            while (!stepStrategy_->isStepComplete()) {
                 GameEvent event;
                 if (events_.tryPop(event)) {
                     event.Run(*simulator_);
@@ -160,5 +168,10 @@ class GameServer {
         events_.push(std::move(event));
     }
 };
+
+// deduction guide
+template<NetworkDriver Driver>
+GameServer(std::unique_ptr<Driver> driver, std::unique_ptr<GameSimulator> simulator,
+               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS) -> GameServer<Driver, FixedStepStrategy<SIMULATION_STEP_MS>>;
 
 } // namespace LifeGame

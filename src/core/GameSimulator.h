@@ -7,7 +7,6 @@
 namespace LifeGame {
 
 /**
- * Многопоточный симулятор игры "Жизнь"
  * Чистый симулятор без логики игроков - только симуляция Conway's Game of Life
  */
 class GameSimulator {

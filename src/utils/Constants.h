@@ -22,7 +22,7 @@ using namespace std::chrono;
 constexpr milliseconds NETWORK_UPDATE_INTERVAL_MS = 150ms; // Интервал отправки обновлений
 
 // Симуляция
-constexpr milliseconds SIMULATION_STEP_MS = 50ms; // Шаг симуляции (20 FPS)
+constexpr uint64_t SIMULATION_STEP_MS = 500; // Шаг симуляции (20 FPS)
 
 // Размер сообщения от клиента
 constexpr int MESSAGE_BYTES_SIZE = sizeof(int32_t) + sizeof(int32_t);

@@ -1,7 +1,3 @@
-//
-// Created by mike on 6/15/25.
-//
-
 #include <gtest/gtest.h>
 #include <chrono>
 #include <random>

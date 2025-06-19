@@ -1,7 +1,3 @@
-//
-// Created by mike on 6/15/25.
-//
-
 #include <gtest/gtest.h>
 #include "core/BitField.h"
 #include "utils/SimulationPatterns.h"

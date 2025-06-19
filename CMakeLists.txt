@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(GameOfLife)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
@@ -58,6 +58,7 @@ if(GTest_FOUND)
         ${SOURCES}
         tests/GameSimulator_Units.cpp
         tests/BitField_Units.cpp
+        tests/GameServer_Units.cpp
         tests/GameSimulator_Performance.cpp
     )
     
