@@ -7,7 +7,7 @@
 #include "core/BitField.h"
 #include "ReferenceGameSimulator.h"
 
-namespace LifeGame::Testing {
+namespace LifeGame::utils {
 
 // Represents a single cell's coordinates and state
 struct CellState {

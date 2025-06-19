@@ -3,8 +3,8 @@
 //
 
 #include <gtest/gtest.h>
-#include "../src/core/BitField.h"
-#include "SimulationPatterns.h"
+#include "core/BitField.h"
+#include "utils/SimulationPatterns.h"
 
 namespace LifeGame {
 
@@ -28,7 +28,7 @@ TEST_F(BitFieldTest, BasicCellOperations) {
     EXPECT_FALSE(field->isAlive(5, 5));
     
     // Set a cell alive using CellState
-    Testing::applyPattern(*field, {Testing::CellState(5, 5)});
+    utils::applyPattern(*field, {utils::CellState(5, 5)});
     EXPECT_TRUE(field->isAlive(5, 5));
     EXPECT_EQ(field->getAliveCellCount(), 1);
     
@@ -52,10 +52,10 @@ TEST_F(BitFieldTest, ToggleCell) {
 
 TEST_F(BitFieldTest, BoundaryConditions) {
     // Test corners using pattern application
-    std::vector<Testing::CellState> cornerPattern = {
+    std::vector<utils::CellState> cornerPattern = {
         {0, 0}, {9, 0}, {0, 9}, {9, 9}
     };
-    Testing::applyPattern(*field, cornerPattern);
+    utils::applyPattern(*field, cornerPattern);
     
     EXPECT_TRUE(field->isAlive(0, 0));
     EXPECT_TRUE(field->isAlive(9, 0));
@@ -81,10 +81,10 @@ TEST_F(BitFieldTest, OutOfBoundsAccess) {
 
 TEST_F(BitFieldTest, NeighborCounting) {
     // Create a small L-shape pattern
-    std::vector<Testing::CellState> lPattern = {
+    std::vector<utils::CellState> lPattern = {
         {4, 4}, {4, 5}, {5, 4}
     };
-    Testing::applyPattern(*field, lPattern);
+    utils::applyPattern(*field, lPattern);
     
     EXPECT_EQ(field->countNeighbors(5, 5), 3);
     EXPECT_EQ(field->countNeighbors(4, 4), 2);
@@ -94,33 +94,33 @@ TEST_F(BitFieldTest, NeighborCounting) {
 
 TEST_F(BitFieldTest, NeighborCountingEdgeCases) {
     // Corner cell with one neighbor
-    Testing::applyPattern(*field, {Testing::CellState(0, 1)});
+    utils::applyPattern(*field, {utils::CellState(0, 1)});
     EXPECT_EQ(field->countNeighbors(0, 0), 1);
     
     // Edge cell with neighbors
-    std::vector<Testing::CellState> edgePattern = {
+    std::vector<utils::CellState> edgePattern = {
         {0, 4}, {1, 4}, {1, 5}
     };
-    Testing::applyPattern(*field, edgePattern);
+    utils::applyPattern(*field, edgePattern);
     EXPECT_EQ(field->countNeighbors(0, 5), 3);
     
     // Cell surrounded by all neighbors
     field->clear();
-    std::vector<Testing::CellState> surroundPattern;
+    std::vector<utils::CellState> surroundPattern;
     for (int dx = -1; dx <= 1; ++dx) {
         for (int dy = -1; dy <= 1; ++dy) {
             if (dx == 0 && dy == 0) continue;
             surroundPattern.push_back({static_cast<uint32_t>(5 + dx), static_cast<uint32_t>(5 + dy)});
         }
     }
-    Testing::applyPattern(*field, surroundPattern);
+    utils::applyPattern(*field, surroundPattern);
     EXPECT_EQ(field->countNeighbors(5, 5), 8);
 }
 
 TEST_F(BitFieldTest, ClearField) {
     // Apply a blinker pattern
-    auto blinkerPattern = Testing::Patterns::blinker(2, 2);
-    Testing::applyPattern(*field, blinkerPattern);
+    auto blinkerPattern = utils::Patterns::blinker(2, 2);
+    utils::applyPattern(*field, blinkerPattern);
     
     EXPECT_EQ(field->getAliveCellCount(), 3);
     
@@ -137,8 +137,8 @@ TEST_F(BitFieldTest, ClearField) {
 
 TEST_F(BitFieldTest, DataExport) {
     // Apply a block pattern
-    auto blockPattern = Testing::Patterns::block(0, 0);
-    Testing::applyPattern(*field, blockPattern);
+    auto blockPattern = utils::Patterns::block(0, 0);
+    utils::applyPattern(*field, blockPattern);
     
     auto data = field->serialize();
     EXPECT_FALSE(data.empty());
@@ -158,8 +158,8 @@ TEST_F(BitFieldTest, LargeField) {
     EXPECT_EQ(largeField.getAliveCellCount(), 0);
     
     // Apply a glider pattern
-    auto gliderPattern = Testing::Patterns::glider(50, 50);
-    Testing::applyPattern(largeField, gliderPattern);
+    auto gliderPattern = utils::Patterns::glider(50, 50);
+    utils::applyPattern(largeField, gliderPattern);
     
     EXPECT_TRUE(largeField.isAlive(51, 50));  // Part of glider
     EXPECT_TRUE(largeField.isAlive(52, 52));  // Part of glider
@@ -182,7 +182,7 @@ TEST_F(BitFieldTest, SmallField) {
 
 TEST_F(BitFieldTest, BitPackingCorrectness) {
     // Test that bit packing works correctly by setting many cells with random fill
-    Testing::fillRandom(*field, 0.7, 42); // 70% density with seed 42
+    utils::fillRandom(*field, 0.7, 42); // 70% density with seed 42
     
     // Count how many cells are alive
     int aliveCount = 0;
@@ -202,8 +202,8 @@ TEST_F(BitFieldTest, BitPackingCorrectness) {
 
 TEST_F(BitFieldTest, MoveConstructor) {
     // Apply an R-pentomino pattern
-    auto rPentominoPattern = Testing::Patterns::rPentomino(5, 5);
-    Testing::applyPattern(*field, rPentominoPattern);
+    auto rPentominoPattern = utils::Patterns::rPentomino(5, 5);
+    utils::applyPattern(*field, rPentominoPattern);
     
     BitField movedField = std::move(*field);
     
@@ -219,16 +219,16 @@ TEST_F(BitFieldTest, MoveConstructor) {
 TEST_F(BitFieldTest, CommonPatterns) {
     // Test block pattern
     field->clear();
-    auto blockPattern = Testing::Patterns::block(1, 1);
-    Testing::applyPattern(*field, blockPattern);
+    auto blockPattern = utils::Patterns::block(1, 1);
+    utils::applyPattern(*field, blockPattern);
     EXPECT_EQ(field->getAliveCellCount(), 4);
     EXPECT_TRUE(field->isAlive(1, 1));
     EXPECT_TRUE(field->isAlive(2, 2));
     
     // Test blinker pattern
     field->clear();
-    auto blinkerPattern = Testing::Patterns::blinker(5, 5);
-    Testing::applyPattern(*field, blinkerPattern);
+    auto blinkerPattern = utils::Patterns::blinker(5, 5);
+    utils::applyPattern(*field, blinkerPattern);
     EXPECT_EQ(field->getAliveCellCount(), 3);
     EXPECT_TRUE(field->isAlive(5, 4));
     EXPECT_TRUE(field->isAlive(5, 5));
@@ -236,8 +236,8 @@ TEST_F(BitFieldTest, CommonPatterns) {
     
     // Test glider pattern
     field->clear();
-    auto gliderPattern = Testing::Patterns::glider(2, 2);
-    Testing::applyPattern(*field, gliderPattern);
+    auto gliderPattern = utils::Patterns::glider(2, 2);
+    utils::applyPattern(*field, gliderPattern);
     EXPECT_EQ(field->getAliveCellCount(), 5);
     EXPECT_TRUE(field->isAlive(3, 2));
     EXPECT_TRUE(field->isAlive(4, 3));

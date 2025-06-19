@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../src/core/BitField.h"
+#include "core/BitField.h"
 #include <vector>
 #include <cstdint>
 
 
-namespace LifeGame::Testing {
+namespace LifeGame::utils {
 
 /**
  * A simplified reference implementation of GameSimulator
