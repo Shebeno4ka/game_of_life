@@ -99,7 +99,7 @@ TEST_F(GameServerTest, SendsUpdatesToClients) {
     
     // Initialize reference simulator with the same pattern
     refSimulator->setInitialPattern(initialPattern);
-    stepHandle.completeStep(2);
+    stepHandle.completeStep(1);
     
     // Start server
     server->start();
