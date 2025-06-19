@@ -15,10 +15,32 @@ BitField::BitField(uint32_t width, uint32_t height)
     clear();
 }
 
+BitField::BitField(const BitField& other)
+        : width_(other.width_)
+        , height_(other.height_)
+        , data_(nullptr) {
+    allocateAlignedMemory();
+    std::memcpy(data_, other.data_, fieldBytes());
+}
+
 BitField::BitField(BitField&& other) noexcept : width_(other.width_), height_(other.height_), data_(other.data_) {
     other.width_ = 0;
     other.height_ = 0;
     other.data_ = nullptr;
+}
+
+BitField& BitField::operator=(const BitField& other) {
+    if (this != &other) {
+        if (width_ != other.width_ || height_ != other.height_) {
+            deallocateMemory();
+            width_ = other.width_;
+            height_ = other.height_;
+            allocateAlignedMemory();
+        }
+        
+        std::memcpy(data_, other.data_, fieldBytes());
+    }
+    return *this;
 }
 
 BitField& BitField::operator=(BitField&& other) noexcept {
@@ -78,7 +100,7 @@ void BitField::toggleCell(uint32_t x, uint32_t y) {
     data_[byteIndex] ^= bitMask;
 }
 
-std::vector<std::byte> BitField::getData() const {
+std::vector<std::byte> BitField::serialize() const {
     std::vector<std::byte> data(fieldBytes());
     std::transform(data_, data_ + fieldBytes(), data.begin(), [](char c) { return static_cast<std::byte>(c); });
 

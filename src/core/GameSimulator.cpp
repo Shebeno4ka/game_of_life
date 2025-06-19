@@ -16,7 +16,7 @@ void GameSimulator::applySingleCellChange(uint32_t x, uint32_t y, bool alive) {
 }
 
 std::vector<std::byte> GameSimulator::getStateData() const {
-    return currentField_.getData();
+    return currentField_.serialize();
 }
 
 uint32_t GameSimulator::getAliveCellCount() const {

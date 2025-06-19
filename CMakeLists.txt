@@ -15,7 +15,6 @@ include_directories(src)
 set(SOURCES
     src/core/BitField.cpp
     src/core/GameSimulator.cpp
-    src/server/GameServer.cpp
     src/network/WebSocketServer.cpp
 )
 

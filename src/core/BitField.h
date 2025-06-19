@@ -17,9 +17,9 @@ class BitField {
 
    public:
     explicit BitField(uint32_t width, uint32_t height);
-    BitField(const BitField& other) = delete;
+    BitField(const BitField& other);  // Added copy constructor
     BitField(BitField&& other) noexcept;
-    BitField& operator=(const BitField& other) = delete;
+    BitField& operator=(const BitField& other);  // Added copy assignment
     BitField& operator=(BitField&& other) noexcept;
     ~BitField();
 
@@ -35,7 +35,7 @@ class BitField {
     void setAlive(uint32_t x, uint32_t y, bool alive);
     void toggleCell(uint32_t x, uint32_t y);
 
-    std::vector<std::byte> getData() const;
+    std::vector<std::byte> serialize() const;
 
     // Очистка поля
     void clear();
