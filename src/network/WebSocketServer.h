@@ -54,7 +54,7 @@ class WebSocketServer {
     asio::awaitable<void> sendMessage(ConnectionId connectionId, Connection& ws, std::vector<std::byte>& data,
                                       std::chrono::milliseconds timeout);
 
-    static std::vector<CellChange> parseClientMessage_(std::vector<std::byte> message);
+    std::vector<CellChange> parseClientMessage_(std::vector<std::byte> message);
 };
 
 } // namespace network

@@ -80,16 +80,6 @@ asio::awaitable<void> WebSocketServer::sendMessage(ConnectionId connectionId, Co
 }
 
 std::future<void> WebSocketServer::sendToAllClients(std::vector<std::byte> data, std::chrono::milliseconds timeout) {
-    size_t clientCount;
-    {
-        std::scoped_lock lock(mutex_);
-        clientCount = connections_.size();
-    }
-    
-    if (clientCount > 0) {
-        logger_->debug("Broadcasting {} bytes to {} clients", data.size(), clientCount);
-    }
-
     std::vector<asio::awaitable<void>> tasks;
 
     auto sharedResources = std::make_unique<std::vector<std::byte>>(std::move(data));
@@ -174,7 +164,7 @@ std::vector<CellChange> WebSocketServer::parseClientMessage_(std::vector<std::by
 
     for (size_t i = 0; i < message.size(); i += LifeGame::MESSAGE_BYTES_SIZE) {
         uint32_t x = static_cast<uint32_t>(message[i]);
-        uint32_t y = static_cast<uint32_t>(message[i + 1]);
+        uint32_t y = static_cast<uint32_t>(message[i + LifeGame::MESSAGE_BYTES_SIZE / 2]);
 
         changes.emplace_back(x, y, true);
     }

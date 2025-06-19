@@ -71,7 +71,7 @@ class GameServer {
    private:
     void gameLoop();
 
-    void onClientMessage(std::vector<CellChange>&& changes);
+    void onClientMessage(std::vector<CellChange> changes);
 };
 
 } // namespace LifeGame

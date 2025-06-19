@@ -103,10 +103,10 @@ void GameServer::gameLoop() {
     logger_->info("Game loop finished after {} steps", stepCount);
 }
 
-void GameServer::onClientMessage(std::vector<CellChange>&& changes) {
+void GameServer::onClientMessage(std::vector<CellChange> changes) {
+    logger_->debug("Processed client message with {} changes", changes.size());
     GameEvent event(std::move(changes));
     events_.push(std::move(event));
-    logger_->debug("Processed client message with {} changes", changes.size());
 }
 
 } // namespace LifeGame
