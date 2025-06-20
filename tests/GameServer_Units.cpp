@@ -119,8 +119,7 @@ TEST_F(GameServerTest, SendsUpdatesToClients) {
     const auto& actualData = networkHandle.fromServerData().back();
     
     EXPECT_EQ(actualData.size(), expectedData.size());
-    EXPECT_TRUE(std::equal(actualData.begin(), actualData.end(), expectedData.begin()));
-
+    EXPECT_EQ(actualData, expectedData);
     
     server->stop();
 }
