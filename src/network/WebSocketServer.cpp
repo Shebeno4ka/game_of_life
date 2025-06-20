@@ -111,7 +111,7 @@ asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
     ws.binary(true);
     boost::system::error_code acceptEc;
     co_await ws.async_accept(asio::redirect_error(asio::use_awaitable, acceptEc));
-    
+
     if (acceptEc) {
         logger_->warn("WebSocket handshake failed: {}", acceptEc.message());
         co_return;

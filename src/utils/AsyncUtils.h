@@ -8,7 +8,7 @@ template <typename T>
 std::future<void> runAll(boost::asio::io_context& ioc, std::vector<boost::asio::awaitable<void>> tasks,
                          std::unique_ptr<T> resources) {
     if (tasks.empty()) {
-        return std::async(std::launch::deferred, []{});
+        return std::async(std::launch::deferred, [] {});
     }
 
     namespace asio = boost::asio;

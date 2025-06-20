@@ -7,18 +7,12 @@
 
 namespace LifeGame {
 
-BitField::BitField(uint32_t width, uint32_t height)
-        : width_(width)
-        , height_(height)
-        , data_(nullptr) {
+BitField::BitField(uint32_t width, uint32_t height) : width_(width), height_(height), data_(nullptr) {
     allocateAlignedMemory();
     clear();
 }
 
-BitField::BitField(const BitField& other)
-        : width_(other.width_)
-        , height_(other.height_)
-        , data_(nullptr) {
+BitField::BitField(const BitField& other) : width_(other.width_), height_(other.height_), data_(nullptr) {
     allocateAlignedMemory();
     std::memcpy(data_, other.data_, fieldBytes());
 }
@@ -37,7 +31,7 @@ BitField& BitField::operator=(const BitField& other) {
             height_ = other.height_;
             allocateAlignedMemory();
         }
-        
+
         std::memcpy(data_, other.data_, fieldBytes());
     }
     return *this;

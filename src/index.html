@@ -50,6 +50,10 @@
 <canvas id="gameCanvas"></canvas>
 
 <script>
+    // Game of Life WebSocket Client with comprehensive logging
+    // All WebSocket operations and user interactions are logged to console
+    // Open browser developer tools (F12) to see the logs
+    
     // Game configuration
     const GRID_SIZE = 10;
 
@@ -90,25 +94,40 @@
 
     // Connection opened
     socket.addEventListener('open', (event) => {
+        console.log('WebSocket connection opened:', event);
         statusElement.textContent = 'Connected to WebSocket';
         statusElement.className = 'connected';
     });
 
     // Connection closed
     socket.addEventListener('close', (event) => {
+        console.log('WebSocket connection closed:', event);
         statusElement.textContent = 'Disconnected from WebSocket';
         statusElement.className = 'disconnected';
     });
 
-    // Listen for messages - expecting array of 10000 bytes
+    // Connection error
+    socket.addEventListener('error', (event) => {
+        console.error('WebSocket error:', event);
+    });
+
+    // Listen for messages - expecting array of 1250 байт
 socket.addEventListener('message', (event) => {
+    console.log('Received WebSocket message:', event);
+    
     if (event.data instanceof Blob) {
+        console.log('Received Blob data, size:', event.data.size, 'bytes');
+        
         // Читаем Blob как ArrayBuffer
         event.data.arrayBuffer().then(buffer => {
             const compressedData = new Uint8Array(buffer);
+            console.log('Processed ArrayBuffer, length:', compressedData.length, 'bytes');
+            console.log('First 10 bytes:', Array.from(compressedData.slice(0, 10)));
             
             // Ожидаем 1250 байт для поля 100x100 (8 ячеек на байт)
             if (compressedData.length === GRID_SIZE * GRID_SIZE / 8) {
+                console.log('Processing compressed game state data...');
+                
                 // Распаковываем сжатые данные
                 for (let byteIndex = 0; byteIndex < compressedData.length; byteIndex++) {
                     const byte = compressedData[byteIndex];
@@ -125,10 +144,18 @@ socket.addEventListener('message', (event) => {
                     }
                 }
                 
+                // Подсчитываем количество живых клеток для логирования
+                const aliveCells = gameState.filter(cell => cell > 0).length;
+                console.log('Game state updated. Alive cells:', aliveCells, '/', gameState.length);
+                
                 // Перерисовываем поле после получения новых данных
                 drawGrid();
+            } else {
+                console.warn('Unexpected data length:', compressedData.length, 'Expected:', GRID_SIZE * GRID_SIZE / 8);
             }
         });
+    } else {
+        console.log('Received non-Blob data:', event.data);
     }
 });
     // Draw the grid
@@ -172,18 +199,27 @@ socket.addEventListener('message', (event) => {
         const x = Math.floor((event.clientX - rect.left) / CELL_SIZE);
         const y = Math.floor((event.clientY - rect.top) / CELL_SIZE);
 
+        console.log('Cell clicked at coordinates:', { x, y });
+
         // Добавляем координаты в массив, если их там еще нет
         if (!activatedCells.some(cell => cell.x === x && cell.y === y)) {
             activatedCells.push({ x, y });
+            console.log('Cell activated. Total activated cells:', activatedCells.length);
         } else {
             // Удаляем координаты, если они уже есть
             activatedCells = activatedCells.filter(cell => !(cell.x === x && cell.y === y));
+            console.log('Cell deactivated. Total activated cells:', activatedCells.length);
         }
+        
+        console.log('Current activated cells:', activatedCells);
     });
 
     // Отправка накопленных координат по нажатию пробела
     window.addEventListener('keydown', (event) => {
         if (event.code === 'Space' && activatedCells.length > 0 && socket.readyState === WebSocket.OPEN) {
+            console.log('Sending activated cells:', activatedCells);
+            console.log('Number of cells to send:', activatedCells.length);
+            
             // Создаем буфер для всех координат (каждая пара x, y — по 4 байта на число)
             const buffer = new ArrayBuffer(activatedCells.length * 8);
             const view = new Uint32Array(buffer);
@@ -191,8 +227,18 @@ socket.addEventListener('message', (event) => {
                 view[i * 2] = cell.x;
                 view[i * 2 + 1] = cell.y;
             });
+            
+            console.log('Sending ArrayBuffer, size:', buffer.byteLength, 'bytes');
+            console.log('Buffer content (first 20 values):', Array.from(view.slice(0, 20)));
+            
             socket.send(buffer);
+            
+            console.log('Data sent successfully, clearing activated cells');
             activatedCells = [];
+        } else if (event.code === 'Space' && activatedCells.length === 0) {
+            console.log('Space pressed but no activated cells to send');
+        } else if (event.code === 'Space' && socket.readyState !== WebSocket.OPEN) {
+            console.warn('Space pressed but WebSocket is not connected, state:', socket.readyState);
         }
     });
 
