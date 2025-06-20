@@ -120,38 +120,72 @@ socket.addEventListener('message', (event) => {
         
         // Читаем Blob как ArrayBuffer
         event.data.arrayBuffer().then(buffer => {
-            const compressedData = new Uint8Array(buffer);
-            console.log('Processed ArrayBuffer, length:', compressedData.length, 'bytes');
-            console.log('First 10 bytes:', Array.from(compressedData.slice(0, 10)));
-            
-            // Ожидаем 1250 байт для поля 100x100 (8 ячеек на байт)
-            if (compressedData.length === GRID_SIZE * GRID_SIZE / 8) {
-                console.log('Processing compressed game state data...');
+            // Если это массив пар 32-битных координат
+            if (buffer.byteLength % 8 === 0 && buffer.byteLength > 8) {
+                const coordData = new Uint32Array(buffer);
+                console.log('Received coordinates data, pairs:', coordData.length / 2);
                 
-                // Распаковываем сжатые данные
-                for (let byteIndex = 0; byteIndex < compressedData.length; byteIndex++) {
-                    const byte = compressedData[byteIndex];
+                // Очищаем текущее состояние
+                gameState = new Array(GRID_SIZE * GRID_SIZE).fill(0);
+                
+                // Обрабатываем каждую пару координат
+                for (let i = 0; i < coordData.length; i += 2) {
+                    const x = coordData[i];
+                    const y = coordData[i + 1];
                     
-                    // Извлекаем 8 бит из каждого байта
-                    for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
-                        const cellIndex = byteIndex * 8 + bitIndex;
-                        
-                        // Проверяем, что не выходим за границы массива
-                        if (cellIndex < gameState.length) {
-                            // Извлекаем бит (начиная с младшего)
-                            gameState[cellIndex] = (byte >> bitIndex) & 1;
-                        }
+                    // Проверяем границы поля
+                    if (x < GRID_SIZE && y < GRID_SIZE) {
+                        const index = y * GRID_SIZE + x;
+                        gameState[index] = 1;
                     }
                 }
                 
                 // Подсчитываем количество живых клеток для логирования
                 const aliveCells = gameState.filter(cell => cell > 0).length;
-                console.log('Game state updated. Alive cells:', aliveCells, '/', gameState.length);
+                console.log('Game state updated from coordinates. Alive cells:', aliveCells, '/', gameState.length);
                 
                 // Перерисовываем поле после получения новых данных
                 drawGrid();
             } else {
-                console.warn('Unexpected data length:', compressedData.length, 'Expected:', GRID_SIZE * GRID_SIZE / 8);
+                // Это сжатый битовый массив
+                const compressedData = new Uint8Array(buffer);
+                console.log('Processed ArrayBuffer, length:', compressedData.length, 'bytes');
+                console.log('First 10 bytes:', Array.from(compressedData.slice(0, 10)));
+                
+                // Ожидаем (GRID_SIZE * GRID_SIZE + 7) / 8 байт = для поля 10x10 это 13 байт
+                const expectedBytes = Math.ceil(GRID_SIZE * GRID_SIZE / 8);
+                
+                if (compressedData.length === expectedBytes) {
+                    console.log('Processing compressed game state data...');
+                    
+                    // Очищаем текущее состояние
+                    gameState = new Array(GRID_SIZE * GRID_SIZE).fill(0);
+                    
+                    // Распаковываем сжатые данные
+                    for (let byteIndex = 0; byteIndex < compressedData.length; byteIndex++) {
+                        const byte = compressedData[byteIndex];
+                        
+                        // Извлекаем 8 бит из каждого байта
+                        for (let bitIndex = 0; bitIndex < 8; bitIndex++) {
+                            const cellIndex = byteIndex * 8 + bitIndex;
+                            
+                            // Проверяем, что не выходим за границы массива
+                            if (cellIndex < gameState.length) {
+                                // Извлекаем бит (0-й бит - крайний правый)
+                                gameState[cellIndex] = (byte & (1 << bitIndex)) ? 1 : 0;
+                            }
+                        }
+                    }
+                    
+                    // Подсчитываем количество живых клеток для логирования
+                    const aliveCells = gameState.filter(cell => cell > 0).length;
+                    console.log('Game state updated from bit array. Alive cells:', aliveCells, '/', gameState.length);
+                    
+                    // Перерисовываем поле после получения новых данных
+                    drawGrid();
+                } else {
+                    console.warn('Unexpected data length:', compressedData.length, 'Expected:', expectedBytes);
+                }
             }
         });
     } else {
