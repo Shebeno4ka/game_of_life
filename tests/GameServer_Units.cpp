@@ -78,10 +78,9 @@ TEST_F(GameServerTest, ProcessClientMessages) {
     networkHandle.sendToServer(changes);
     
     // Complete the step to process the event
-    stepHandle.completeStep();
-    
-    // Wait a bit for the server to process
-    std::this_thread::sleep_for(50ms);
+    stepHandle.makeUserEvents(2);
+    auto stepEndEvent = stepHandle.makeSimulatorSteps(1);
+    stepEndEvent.wait();
     
     // Verify the message was received by checking the network driver's data
     ASSERT_GE(networkHandle.fromClientData().size(), 1);
@@ -96,19 +95,14 @@ TEST_F(GameServerTest, SendsUpdatesToClients) {
     utils::applyPattern(initialPattern, utils::Patterns::glider(2, 2));
 
     server->setInitialPattern(initialPattern);
+    server->start();
     
     // Initialize reference simulator with the same pattern
     refSimulator->setInitialPattern(initialPattern);
-    stepHandle.completeStep(1);
-    
-    // Start server
-    server->start();
-    
+    stepHandle.makeSimulatorSteps(1).wait();
+
     // Simulate the same step in the reference simulator
     refSimulator->step();
-    
-    // Wait a bit for the server to process
-    std::this_thread::sleep_for(50ms);
     
     // Check that server sent updates to clients
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
@@ -138,7 +132,7 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     server->start();
     
     // Run two steps to see the oscillation
-    stepHandle.completeStep();
+    stepHandle.makeSimulatorSteps(1).wait();
     refSimulator->step();
     
     std::this_thread::sleep_for(50ms);
@@ -150,7 +144,7 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     EXPECT_EQ(firstUpdate.size(), expectedFirstUpdate.size());
     
     // Second step
-    stepHandle.completeStep();
+    stepHandle.makeSimulatorSteps(1).wait();
     refSimulator->step();
     
     std::this_thread::sleep_for(50ms);

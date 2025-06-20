@@ -33,6 +33,8 @@ concept StepControlStrategy = requires(T strategy) {
     // Метод для проверки, следует ли продолжать текущий шаг.
     { strategy.isStepComplete() } -> std::same_as<bool>;
 
+    { strategy.onStepEnd() } -> std::same_as<void>;
+
     { strategy.stop() } -> std::same_as<void>;
 };
 

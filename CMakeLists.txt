@@ -16,6 +16,7 @@ set(SOURCES
     src/core/BitField.cpp
     src/core/GameSimulator.cpp
     src/network/WebSocketServer.cpp
+    src/utils/EventQueue.cpp
 )
 
 # Заголовочные файлы
@@ -29,6 +30,7 @@ set(HEADERS
     src/utils/Constants.h
     src/core/GameEvent.h
     src/utils/LoggerSetup.h
+    src/utils/EventQueue.h
 )
 
 # Основное приложение

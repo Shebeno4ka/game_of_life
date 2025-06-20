@@ -102,16 +102,15 @@ class GameServer {
         logger_->info("Stopping GameServer");
 
         running_.store(false);
-        stepStrategy_->stop();
         events_.close();
         networkDriver_->stop();
+        stepStrategy_->stop();
 
         if (gameMainThread_.joinable()) {
             gameMainThread_.join();
         }
         logger_->info("GameServer stopped");
     }
-
     bool isRunning() const {
         return running_;
     }
@@ -158,6 +157,8 @@ class GameServer {
             if (stepCount % 100 == 0) {
                 logger_->debug("Step {}, processed {} events", stepCount, eventsProcessed);
             }
+
+            stepStrategy_->onStepEnd();
         }
         logger_->info("Game loop finished after {} steps", stepCount);
     }

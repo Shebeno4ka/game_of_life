@@ -20,6 +20,8 @@ public:
         return (std::chrono::steady_clock::now() >= stepStartTime_ + kDuration);
     }
 
+    void onStepEnd() {}
+
     void stop() {}
 };
 

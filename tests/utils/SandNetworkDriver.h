@@ -7,6 +7,7 @@
 namespace LifeGame::utils {
 
 class SandNetworkDriver {
+public:
     using MessageCallback = std::function<void(std::vector<CellChange>)>;
     using FromClientData = std::vector<std::vector<CellChange>>;
     using FromServerData = std::vector<std::vector<std::byte>>;
@@ -28,6 +29,7 @@ class SandNetworkDriver {
         }
     };
 
+private:
     MessageCallback messageCallback_;
     FromClientData fromClientData_;
     FromServerData fromServerData_;

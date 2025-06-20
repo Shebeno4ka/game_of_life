@@ -1,50 +1,112 @@
 #pragma once
 
-#include <atomic>
+#include "utils/EventQueue.h"
+
 
 namespace LifeGame::utils  {
 
 /**
  * Стратегия для тестов, позволяющая вручную завершать шаг через handle.
  */
+
+
+/*
+
+В симуляторе
+while (true) {
+    strategy.OnStepStart();
+    simulator.step();
+    while (!strategy.isStepComplete()) {
+        event = q.pop();
+        event.Run();
+    }
+    simulator.onStepEnd();
+}
+
+*/
+
+// Токен, который позволяет дождаться завершения конкретного симуляционного шага.
+struct StepToken {
+private:
+    EventToken event_;
+public:
+    explicit StepToken(EventToken event) : event_(std::move(event)) {}
+
+    // Блокирует выполнение, пока связанный шаг не будет завершён.
+    void wait() {event_.wait();}
+};
+
+// Токен, который позволяет дождаться обработки пользовательского события.
+struct UserEventToken {
+private:
+    EventToken event_;
+public:
+    explicit UserEventToken(EventToken event) : event_(std::move(event)) {}
+
+    // Блокирует выполнение, пока событие не будет обработано.
+    void wait() {event_.wait();}
+};
+
+// Тестовая стратегия пошаговой симуляции — позволяет вручную управлять
+// выполнением шагов симуляции и пользовательских событий.
 class SandStepStrategy {
 public:
+    // Объект, чтобы управлять симуляцией.
     class Handle {
+    private:
         SandStepStrategy* strategy_;
+    public:
+        explicit Handle(SandStepStrategy* strategy = nullptr) : strategy_(strategy) {}
 
-       public:
-        Handle(): strategy_(nullptr) {}
-        explicit Handle(SandStepStrategy* strategy) : strategy_(strategy) {}
+        // Зарегистрировать симуляционные шаги.
+        // Возвращает StepToken, который можно ждать в тесте.
+        StepToken makeSimulatorSteps(uint32_t stepsCount) {  // TODO: rename to register
+            assert(stepsCount > 0);
+            for (uint32_t i = 0; i < stepsCount - 1; ++i) {
+                strategy_->steps_.registerEvent();
+            }
+            return StepToken(strategy_->steps_.registerEvent());
+        }
 
-        void completeStep(uint32_t stepCount=1) const {
-            strategy_->stepsAvailable_.fetch_add(stepCount);
+        // Зарегистрировать пользовательские события.
+        // Возвращает UserEventToken, который можно ждать в тесте.
+        UserEventToken makeUserEvents(uint32_t eventsCount) {
+            assert(eventsCount > 0);
+            for (uint32_t i = 0; i < eventsCount - 1; ++i) {
+                strategy_->userEvents_.registerEvent();
+            }
+            return UserEventToken(strategy_->userEvents_.registerEvent());
         }
     };
+
 private:
-    std::atomic<uint32_t> stepsAvailable_;
-
+    EventQueue steps_;
+    EventQueue userEvents_;
 public:
-    SandStepStrategy() : stepsAvailable_(0) {}
+    SandStepStrategy() = default;
 
-    void onStepStart() {}
-
+    SandStepStrategy(const SandStepStrategy&) = delete;
+    SandStepStrategy& operator=(const SandStepStrategy&) = delete;
+    SandStepStrategy(SandStepStrategy&&) = delete;
+    SandStepStrategy& operator=(SandStepStrategy&&) = delete;
+    
+    Handle getHandle() {return Handle(this);}
+    
+    void onStepStart() {
+        steps_.waitUntilNotEmpty();
+    }
+    
     bool isStepComplete() {
-        auto expected = stepsAvailable_.load(std::memory_order_relaxed);
-        while (expected > 0) {
-            if (stepsAvailable_.compare_exchange_weak(expected, expected-1)) {
-                return true;
-            }
-        }
-        return false;
+        return !userEvents_.trySetNextEvent();
+    }
+
+    void onStepEnd() {
+        steps_.trySetNextEvent();
     }
 
     void stop() {
-        stepsAvailable_.store(1e9);
-    }
-
-    // Возвращает handler для управления завершением шага
-    Handle getHandle() {
-        return Handle(this);
+        steps_.close();
+        userEvents_.close();
     }
 };
 

@@ -6,6 +6,7 @@
 #include <atomic>
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace LifeGame {
 
@@ -19,7 +20,7 @@ class MPSCQueue {
     std::queue<T> queue_;
     std::atomic<bool> closed_;
 
-   public:
+public:
     MPSCQueue() : closed_(false) {}
 
     ~MPSCQueue() {
@@ -34,6 +35,13 @@ class MPSCQueue {
         }
     }
 
+    void waitWhileEmpty() {
+        std::unique_lock lock(mutex_);
+        while (queue_.empty() && !closed_.load()) {
+            condition_.wait(lock);
+        }
+    }
+
     bool tryPop(T& item) {
         std::unique_lock lock(mutex_);
 
@@ -44,6 +52,16 @@ class MPSCQueue {
         item = std::move(queue_.front());
         queue_.pop();
         return true;
+    }
+
+    std::optional<T> tryPop() {
+        std::unique_lock lock(mutex_);
+        if (queue_.empty()) {
+            return std::nullopt;
+        }
+        T item = std::move(queue_.front());
+        queue_.pop();
+        return std::optional<T>(std::move(item));
     }
 
     bool popBlocking(T& item) {
