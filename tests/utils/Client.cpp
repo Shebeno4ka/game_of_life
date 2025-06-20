@@ -1,4 +1,7 @@
 #include "Client.h"
+
+#include "utils/DebugUtils.h"
+
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <spdlog/spdlog.h>
@@ -73,6 +76,8 @@ void Client::send(std::vector<std::pair<uint32_t, uint32_t>> changes) {
             message.push_back(static_cast<std::byte>((y >> (i * 8)) & 0xFF));
         }
     }
+
+    logger_->debug("Send updates: {}", bytesToBitString((message)));
 
     ws_.async_write(buffer(message), [this, changes](boost::system::error_code ec, std::size_t bytes_transferred) {
         if (ec) {

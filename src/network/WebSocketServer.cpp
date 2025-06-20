@@ -6,6 +6,7 @@
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
 #include "server/GameServer.h"
+#include "utils/DebugUtils.h"
 
 using namespace network;
 
@@ -163,8 +164,13 @@ std::vector<CellChange> WebSocketServer::parseClientMessage_(std::vector<std::by
     changes.reserve(message.size() / LifeGame::MESSAGE_BYTES_SIZE);
 
     for (size_t i = 0; i < message.size(); i += LifeGame::MESSAGE_BYTES_SIZE) {
-        uint32_t x = static_cast<uint32_t>(message[i]);
-        uint32_t y = static_cast<uint32_t>(message[i + LifeGame::MESSAGE_BYTES_SIZE / 2]);
+        uint32_t x = 0;
+        uint32_t y = 0;
+
+        for (int j = 0; j < 4; ++j) {
+            x |= static_cast<uint32_t>(std::to_integer<uint8_t>(message[i + j])) << (8 * (3 - j));
+            y |= static_cast<uint32_t>(std::to_integer<uint8_t>(message[i + 4 + j])) << (8 * (3 - j));
+        }
 
         changes.emplace_back(x, y, true);
     }
