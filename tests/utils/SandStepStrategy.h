@@ -70,7 +70,7 @@ public:
 
         // Зарегистрировать пользовательские события.
         // Возвращает UserEventToken, который можно ждать в тесте.
-        UserEventToken makeUserEvents(uint32_t eventsCount) {
+        UserEventToken registerUserEvents(uint32_t eventsCount) {
             assert(eventsCount > 0);
             for (uint32_t i = 0; i < eventsCount - 1; ++i) {
                 strategy_->userEvents_.registerEvent();

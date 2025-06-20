@@ -124,6 +124,11 @@ class GameServer {
         sendTimeoutMs_ = timeoutMs;
     }
 
+    // for testing
+    std::vector<std::byte> getField() {
+        return simulator_->getStateData();
+    }
+
    private:
     void gameLoop() {
         logger_->info("Game loop started");

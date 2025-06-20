@@ -14,6 +14,8 @@ namespace LifeGame {
 
 class GameServerTest : public ::testing::Test {
 protected:
+    uint32_t fieldWidth;
+    uint32_t fieldHeight;
     std::unique_ptr<utils::SandNetworkDriver> networkDriver;
     utils::SandNetworkDriver::Handle networkHandle;
     std::unique_ptr<utils::SandStepStrategy> stepStrategy;
@@ -23,6 +25,20 @@ protected:
     std::unique_ptr<utils::ReferenceGameSimulator> refSimulator;
 
     void SetUp() override {
+        initialize(10, 10); // Default dimensions
+    }
+
+    void TearDown() override {
+        if (server && server->isRunning()) {
+            server->stop();
+        }
+        server.reset();
+    }
+
+    void initialize(uint32_t width, uint32_t height) {
+        fieldWidth = width;
+        fieldHeight = height;
+
         // Create network driver
         networkDriver = std::make_unique<utils::SandNetworkDriver>();
         networkHandle = networkDriver->getHandle();
@@ -31,11 +47,11 @@ protected:
         stepStrategy = std::make_unique<utils::SandStepStrategy>();
         stepHandle = stepStrategy->getHandle();
 
-        // Create a simple simulator with 10x10 field
-        simulator = std::make_unique<GameSimulator>(10, 10);
-        
+        // Create a simulator with specified dimensions
+        simulator = std::make_unique<GameSimulator>(fieldWidth, fieldHeight);
+
         // Create reference simulator with the same dimensions
-        refSimulator = std::make_unique<utils::ReferenceGameSimulator>(10, 10);
+        refSimulator = std::make_unique<utils::ReferenceGameSimulator>(fieldWidth, fieldHeight);
 
         // Create server
         server = std::make_unique<GameServer<utils::SandNetworkDriver, utils::SandStepStrategy>>(
@@ -45,17 +61,9 @@ protected:
             100ms
         );
     }
-
-    void TearDown() override {
-        if (server && server->isRunning()) {
-            server->stop();
-        }
-        server.reset();
-    }
 };
 
 TEST_F(GameServerTest, StartAndStop) {
-    // Test that server starts and stops correctly
     EXPECT_FALSE(server->isRunning());
     
     server->start();
@@ -66,76 +74,61 @@ TEST_F(GameServerTest, StartAndStop) {
 }
 
 TEST_F(GameServerTest, ProcessClientMessages) {
-    server->start();
-    
     // Send a cell change from client
     std::vector<CellChange> changes = {
         {5, 5, true},
         {6, 6, true}
     };
-    
-    // Send message to server
+
+    BitField expectedField(10, 10);
+    for (auto [x, y, alive]: changes) {
+        expectedField.setAlive(x, y, alive);
+    }
+
+    server->start();
     networkHandle.sendToServer(changes);
-    
-    // Complete the step to process the event
-    stepHandle.makeUserEvents(2);
-    auto stepEndEvent = stepHandle.makeSimulatorSteps(1);
-    stepEndEvent.wait();
-    
-    // Verify the message was received by checking the network driver's data
-    ASSERT_GE(networkHandle.fromClientData().size(), 1);
-    EXPECT_EQ(networkHandle.fromClientData().back().size(), 2);
-    
+    stepHandle.registerUserEvents(2);
+    stepHandle.makeSimulatorSteps(1).wait();
+
+
+    EXPECT_EQ(expectedField.serialize(), server->getField());
+
     server->stop();
 }
 
 TEST_F(GameServerTest, SendsUpdatesToClients) {
-    // Use a pattern from SimulationPatterns
     BitField initialPattern(10, 10);
     utils::applyPattern(initialPattern, utils::Patterns::glider(2, 2));
 
     server->setInitialPattern(initialPattern);
-    server->start();
-    
-    // Initialize reference simulator with the same pattern
     refSimulator->setInitialPattern(initialPattern);
-    stepHandle.makeSimulatorSteps(1).wait();
+    server->start();
 
-    // Simulate the same step in the reference simulator
+    stepHandle.makeSimulatorSteps(1).wait();
     refSimulator->step();
     
     // Check that server sent updates to clients
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
-    EXPECT_FALSE(networkHandle.fromServerData().back().empty());
     
     // Verify that the data sent by the server matches what we expect from our reference simulator
     std::vector<std::byte> expectedData = refSimulator->getStateData();
     const auto& actualData = networkHandle.fromServerData().back();
-    
-    EXPECT_EQ(actualData.size(), expectedData.size());
     EXPECT_EQ(actualData, expectedData);
     
     server->stop();
 }
 
 TEST_F(GameServerTest, ProcessesBlinkerPattern) {
-    // Use the blinker pattern (oscillator)
     BitField initialPattern(10, 10);
     utils::applyPattern(initialPattern, utils::Patterns::blinker(4, 4));
 
     server->setInitialPattern(initialPattern);
-    
-    // Initialize reference simulator with the same pattern
     refSimulator->setInitialPattern(initialPattern);
-    
-    // Start server
+
     server->start();
-    
-    // Run two steps to see the oscillation
+
     stepHandle.makeSimulatorSteps(1).wait();
     refSimulator->step();
-    
-    std::this_thread::sleep_for(50ms);
     
     // Check first state
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
@@ -147,8 +140,6 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     stepHandle.makeSimulatorSteps(1).wait();
     refSimulator->step();
     
-    std::this_thread::sleep_for(50ms);
-    
     // Check second state (should be back to original orientation)
     ASSERT_GE(networkHandle.fromServerData().size(), 2);
     auto secondUpdate = networkHandle.fromServerData().back();
@@ -156,6 +147,34 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     EXPECT_EQ(secondUpdate.size(), expectedSecondUpdate.size());
     
     server->stop();
+}
+
+TEST_F(GameServerTest, ProcessesRandomField) {
+    std::vector<double> densities = {0.1, 0.3, 0.5, 0.7, 0.9};
+    for (double density : densities) {
+        initialize(100, 100); // Use 100x100 field dimensions for this test
+        BitField randomField(fieldWidth, fieldHeight);
+        utils::fillRandom(randomField, density);
+
+        server->setInitialPattern(randomField);
+        refSimulator->setInitialPattern(randomField);
+
+        server->start();
+
+        for (int step = 0; step < 100; ++step) {
+            stepHandle.makeSimulatorSteps(1).wait();
+            refSimulator->step();
+
+            ASSERT_GE(networkHandle.fromServerData().size(), step + 1);
+            auto serverUpdate = networkHandle.fromServerData().back();
+            auto refUpdate = refSimulator->getStateData();
+
+            EXPECT_EQ(serverUpdate.size(), refUpdate.size());
+            EXPECT_EQ(serverUpdate, refUpdate);
+        }
+
+        server->stop();
+    }
 }
 
 }
