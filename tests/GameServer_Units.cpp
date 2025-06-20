@@ -2,7 +2,7 @@
 #include "server/GameServer.h"
 #include "utils/SandNetworkDriver.h"
 #include "utils/SandStepStrategy.h"
-#include "utils/ReferenceGameSimulator.h"
+#include "utils/SandGameSimulator.h"
 #include "core/BitField.h"
 #include "core/GameSimulator.h"
 #include "utils/SimulationPatterns.h"
@@ -22,7 +22,7 @@ protected:
     utils::SandStepStrategy::Handle stepHandle;
     std::unique_ptr<GameSimulator> simulator;
     std::unique_ptr<GameServer<utils::SandNetworkDriver, utils::SandStepStrategy>> server;
-    std::unique_ptr<utils::ReferenceGameSimulator> refSimulator;
+    std::unique_ptr<utils::SandGameSimulator> sandSimulator;
 
     void SetUp() override {
         initialize(10, 10); // Default dimensions
@@ -51,7 +51,7 @@ protected:
         simulator = std::make_unique<GameSimulator>(fieldWidth, fieldHeight);
 
         // Create reference simulator with the same dimensions
-        refSimulator = std::make_unique<utils::ReferenceGameSimulator>(fieldWidth, fieldHeight);
+        sandSimulator = std::make_unique<utils::SandGameSimulator>(fieldWidth, fieldHeight);
 
         // Create server
         server = std::make_unique<GameServer<utils::SandNetworkDriver, utils::SandStepStrategy>>(
@@ -101,17 +101,17 @@ TEST_F(GameServerTest, SendsUpdatesToClients) {
     utils::applyPattern(initialPattern, utils::Patterns::glider(2, 2));
 
     server->setInitialPattern(initialPattern);
-    refSimulator->setInitialPattern(initialPattern);
+    sandSimulator->setInitialPattern(initialPattern);
     server->start();
 
     stepHandle.makeSimulatorSteps(1).wait();
-    refSimulator->step();
+    sandSimulator->step();
     
     // Check that server sent updates to clients
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
     
     // Verify that the data sent by the server matches what we expect from our reference simulator
-    std::vector<std::byte> expectedData = refSimulator->getStateData();
+    std::vector<std::byte> expectedData = sandSimulator->getStateData();
     const auto& actualData = networkHandle.fromServerData().back();
     EXPECT_EQ(actualData, expectedData);
     
@@ -123,27 +123,27 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     utils::applyPattern(initialPattern, utils::Patterns::blinker(4, 4));
 
     server->setInitialPattern(initialPattern);
-    refSimulator->setInitialPattern(initialPattern);
+    sandSimulator->setInitialPattern(initialPattern);
 
     server->start();
 
     stepHandle.makeSimulatorSteps(1).wait();
-    refSimulator->step();
+    sandSimulator->step();
     
     // Check first state
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
     auto firstUpdate = networkHandle.fromServerData().back();
-    auto expectedFirstUpdate = refSimulator->getStateData();
+    auto expectedFirstUpdate = sandSimulator->getStateData();
     EXPECT_EQ(firstUpdate.size(), expectedFirstUpdate.size());
     
     // Second step
     stepHandle.makeSimulatorSteps(1).wait();
-    refSimulator->step();
+    sandSimulator->step();
     
     // Check second state (should be back to original orientation)
     ASSERT_GE(networkHandle.fromServerData().size(), 2);
     auto secondUpdate = networkHandle.fromServerData().back();
-    auto expectedSecondUpdate = refSimulator->getStateData();
+    auto expectedSecondUpdate = sandSimulator->getStateData();
     EXPECT_EQ(secondUpdate.size(), expectedSecondUpdate.size());
     
     server->stop();
@@ -157,17 +157,17 @@ TEST_F(GameServerTest, ProcessesRandomField) {
         utils::fillRandom(randomField, density);
 
         server->setInitialPattern(randomField);
-        refSimulator->setInitialPattern(randomField);
+        sandSimulator->setInitialPattern(randomField);
 
         server->start();
 
         for (int step = 0; step < 100; ++step) {
             stepHandle.makeSimulatorSteps(1).wait();
-            refSimulator->step();
+            sandSimulator->step();
 
             ASSERT_GE(networkHandle.fromServerData().size(), step + 1);
             auto serverUpdate = networkHandle.fromServerData().back();
-            auto refUpdate = refSimulator->getStateData();
+            auto refUpdate = sandSimulator->getStateData();
 
             EXPECT_EQ(serverUpdate.size(), refUpdate.size());
             EXPECT_EQ(serverUpdate, refUpdate);

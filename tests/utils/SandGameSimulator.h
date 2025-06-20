@@ -10,11 +10,11 @@ namespace LifeGame::utils {
  * A simplified reference implementation of GameSimulator
  * Used for testing and validation of the real GameSimulator
  */
-class ReferenceGameSimulator {
+class SandGameSimulator {
     BitField currentField_;
 
 public:
-    explicit ReferenceGameSimulator(uint32_t fieldWidth = FIELD_WIDTH, uint32_t fieldHeight = FIELD_HEIGHT)
+    explicit SandGameSimulator(uint32_t fieldWidth = FIELD_WIDTH, uint32_t fieldHeight = FIELD_HEIGHT)
         : currentField_(fieldWidth, fieldHeight) {}
 
     void step() {

@@ -4,7 +4,7 @@
 #include <random>
 #include "core/GameSimulator.h"
 #include "core/BitField.h"
-#include "ReferenceGameSimulator.h"
+#include "SandGameSimulator.h"
 
 namespace LifeGame::utils {
 
@@ -62,8 +62,8 @@ inline void applyPattern(GameSimulator& simulator, const std::vector<CellState>&
     }
 }
 
-// Apply a pattern to a ReferenceGameSimulator
-inline void applyPattern(ReferenceGameSimulator& simulator, const std::vector<CellState>& pattern) {
+// Apply a pattern to a SandGameSimulator
+inline void applyPattern(SandGameSimulator& simulator, const std::vector<CellState>& pattern) {
     for (const auto& cell : pattern) {
         simulator.applySingleCellChange(cell.x, cell.y, cell.alive);
     }
