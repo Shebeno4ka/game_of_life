@@ -11,7 +11,6 @@ namespace LifeGame::utils {
  * Used for testing and validation of the real GameSimulator
  */
 class ReferenceGameSimulator {
-private:
     BitField currentField_;
 
 public:
@@ -45,11 +44,11 @@ public:
         currentField_.setAlive(x, y, alive);
     }
 
-    std::vector<std::byte> getStateData() const {
+    [[nodiscard]] std::vector<std::byte> getStateData() const {
         return currentField_.serialize();
     }
 
-    uint32_t getAliveCellCount() const {
+    [[nodiscard]] uint32_t getAliveCellCount() const {
         return currentField_.getAliveCellCount();
     }
 
@@ -61,7 +60,7 @@ public:
         currentField_.clear();
     }
 
-    const BitField& getCurrentField() const {
+    [[nodiscard]] const BitField& getCurrentField() const {
         return currentField_;
     }
 };
