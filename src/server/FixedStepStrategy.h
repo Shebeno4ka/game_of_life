@@ -5,7 +5,7 @@
 namespace LifeGame {
 
 /**
- * Стратегия с фиксированным временем шага.
+ * Ограничевает количество шагов до 1 в kStepDurationMs
  */
 template <uint64_t kStepDurationMs>
 class FixedStepStrategy {
