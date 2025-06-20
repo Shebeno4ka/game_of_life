@@ -11,10 +11,15 @@ class SandNetworkDriver {
     using FromClientData = std::vector<std::vector<CellChange>>;
     using FromServerData = std::vector<std::vector<std::byte>>;
 
+    MessageCallback messageCallback_;
+    FromClientData fromClientData_;
+    FromServerData fromServerData_;
+
+   public:
     class Handle {
         SandNetworkDriver* driver_;
 
-       public:
+    public:
         Handle() : driver_(nullptr) {}
         explicit Handle(SandNetworkDriver* driver) : driver_(driver) {}
         [[nodiscard]] const FromClientData& fromClientData() const {
@@ -28,11 +33,6 @@ class SandNetworkDriver {
         }
     };
 
-    MessageCallback messageCallback_;
-    FromClientData fromClientData_;
-    FromServerData fromServerData_;
-
-   public:
     void start() const {}
     void stop() const {}
 
