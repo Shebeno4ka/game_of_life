@@ -19,7 +19,7 @@ constexpr uint32_t SECTOR_SIZE = 128; // Размер сектора для па
 
 // Сетевые параметры
 using namespace std::chrono;
-constexpr milliseconds NETWORK_UPDATE_INTERVAL_MS = 150ms; // Интервал отправки обновлений
+constexpr milliseconds NETWORK_UPDATE_INTERVAL_MS = 1000ms; // Интервал отправки обновлений
 
 // Симуляция
 constexpr uint64_t SIMULATION_STEP_MS = 500; // Шаг симуляции (20 FPS)

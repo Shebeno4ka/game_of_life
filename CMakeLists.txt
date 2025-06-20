@@ -17,6 +17,7 @@ set(SOURCES
     src/core/GameSimulator.cpp
     src/network/WebSocketServer.cpp
     src/utils/EventQueue.cpp
+    tests/utils/Client.cpp
 )
 
 # Заголовочные файлы
@@ -31,6 +32,7 @@ set(HEADERS
     src/core/GameEvent.h
     src/utils/LoggerSetup.h
     src/utils/EventQueue.h
+    tests/utils/Client.h
 )
 
 # Основное приложение
