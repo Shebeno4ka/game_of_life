@@ -9,23 +9,21 @@
 
 namespace LifeGame {
 
-template<typename T>
-concept NetworkDriver = requires(T& driver, 
-                                std::vector<std::byte> data, 
-                                std::chrono::milliseconds timeout,
-                                std::function<void(std::vector<CellChange>)> callback) {
+template <typename T>
+concept NetworkDriver = requires(T& driver, std::vector<std::byte> data, std::chrono::milliseconds timeout,
+                                 std::function<void(std::vector<CellChange>)> callback) {
     // Должен иметь метод для отправки данных всем клиентам
     { driver.sendToAllClients(data, timeout) } -> std::same_as<std::future<void>>;
-    
+
     // Должен иметь метод для установки callback'а сообщений
     { driver.setMessageCallback(callback) } -> std::same_as<void>;
-    
+
     // Должен иметь методы start/stop
     { driver.start() } -> std::same_as<void>;
     { driver.stop() } -> std::same_as<void>;
 };
 
-template<typename T>
+template <typename T>
 concept StepControlStrategy = requires(T strategy) {
     // Метод для начала шага
     { strategy.onStepStart() } -> std::same_as<void>;

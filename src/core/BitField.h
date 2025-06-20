@@ -17,9 +17,9 @@ class BitField {
 
    public:
     explicit BitField(uint32_t width, uint32_t height);
-    BitField(const BitField& other);  // Added copy constructor
+    BitField(const BitField& other); // Added copy constructor
     BitField(BitField&& other) noexcept;
-    BitField& operator=(const BitField& other);  // Added copy assignment
+    BitField& operator=(const BitField& other); // Added copy assignment
     BitField& operator=(BitField&& other) noexcept;
     ~BitField();
 
@@ -65,7 +65,7 @@ class BitField {
     }
 
     void allocateAlignedMemory();
-    
+
     void deallocateMemory();
 };
 

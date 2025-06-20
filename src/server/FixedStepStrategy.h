@@ -5,13 +5,14 @@
 namespace LifeGame {
 
 /**
- * Стратегия с фиксированным временем шага.
+ * Ограничевает количество шагов до 1 в kStepDurationMs
  */
 template <uint64_t kStepDurationMs>
 class FixedStepStrategy {
     static constexpr std::chrono::milliseconds kDuration{kStepDurationMs};
     std::chrono::steady_clock::time_point stepStartTime_;
-public:
+
+   public:
     void onStepStart() {
         stepStartTime_ = std::chrono::steady_clock::now();
     }

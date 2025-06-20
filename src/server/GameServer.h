@@ -33,7 +33,7 @@ namespace LifeGame {
 
 using namespace std::chrono_literals;
 
-template<NetworkDriver Driver, StepControlStrategy StepStrategy>
+template <NetworkDriver Driver, StepControlStrategy StepStrategy>
 class GameServer {
     std::unique_ptr<GameSimulator> simulator_;
     std::unique_ptr<Driver> networkDriver_;
@@ -64,8 +64,8 @@ class GameServer {
 
     GameServer(std::unique_ptr<Driver> driver, std::unique_ptr<GameSimulator> simulator,
                std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS)
-        : GameServer(std::move(driver), std::move(simulator), std::make_unique<FixedStepStrategy<SIMULATION_STEP_MS>>(), sendTimeoutMs) {
-    }
+        : GameServer(std::move(driver), std::move(simulator), std::make_unique<FixedStepStrategy<SIMULATION_STEP_MS>>(),
+                     sendTimeoutMs) {}
 
     ~GameServer() {
         stop();
@@ -176,8 +176,9 @@ class GameServer {
 };
 
 // deduction guide
-template<NetworkDriver Driver>
+template <NetworkDriver Driver>
 GameServer(std::unique_ptr<Driver> driver, std::unique_ptr<GameSimulator> simulator,
-               std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS) -> GameServer<Driver, FixedStepStrategy<SIMULATION_STEP_MS>>;
+           std::chrono::milliseconds sendTimeoutMs = NETWORK_UPDATE_INTERVAL_MS)
+    -> GameServer<Driver, FixedStepStrategy<SIMULATION_STEP_MS>>;
 
 } // namespace LifeGame

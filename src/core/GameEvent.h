@@ -23,7 +23,7 @@ struct GameEvent {
     GameEvent &operator=(GameEvent &&) = default;
 
     void Run(LifeGame::GameSimulator &simulator) {
-        for (auto[x, y, alive] : changes) {
+        for (auto [x, y, alive] : changes) {
             simulator.applySingleCellChange(x, y, alive);
         }
     }
