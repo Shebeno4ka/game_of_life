@@ -5,13 +5,18 @@
 #include <future>
 
 namespace LifeGame::utils {
-
+/**
+ * Класс SandNetworkDriver имитирует сетевой драйвер для тестирования взаимодействия клиента и сервера.
+ * Используется для валидации сетевого протокола без реального соединения.
+ * Позволяет отслеживать отправленные и полученные данные через вспомогательный класс Handle.
+ */
 class SandNetworkDriver {
 public:
     using MessageCallback = std::function<void(std::vector<CellChange>)>;
     using FromClientData = std::vector<std::vector<CellChange>>;
     using FromServerData = std::vector<std::vector<std::byte>>;
 
+    // Вспомогательный класс для отправки данных на "сервер" и доступа к истории сообщений.
     class Handle {
         SandNetworkDriver* driver_;
 
