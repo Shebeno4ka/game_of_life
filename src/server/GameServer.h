@@ -20,18 +20,7 @@
 namespace LifeGame {
 
 /**
- * Основной игровой сервер согласно заданному алгоритму:
- *
- * stepStrategy_->onStepStart();
- * game_simulator.Step()
- * field = game_simulator().copy()
- * future = web_socket.SendAllAsync(field)
- *
- * while (!stepStrategy_->isStepComplete()):
- *    event = events.TryPop();
- *    event.Run()
- * future.Wait()
- * stepStrategy_->onStepEnd();
+ * Основной игровой сервер
  */
 
 using namespace std::chrono_literals;
@@ -115,6 +104,7 @@ class GameServer {
         logger_->info("GameServer stopped");
     }
 
+    // wait on Futex
     void waitUntilStopped() {
         while (running_.load() == RunState::Running) {
             futexWait(running_, RunState::Running);
@@ -130,16 +120,26 @@ class GameServer {
         logger_->debug("Initial pattern set");
     }
 
-    void setSendTimeout(std::chrono::milliseconds timeoutMs) {
-        sendTimeoutMs_ = timeoutMs;
-    }
-
     // for testing
     std::vector<std::byte> getField() {
         return simulator_->getSerializedField();
     }
 
    private:
+    /**
+     * Основной игровой цикл согласно заданному алгоритму
+     *
+     * stepStrategy_->onStepStart();
+     * game_simulator.Step()
+     * field = game_simulator().copy()
+     * future = web_socket.SendAllAsync(field)
+     *
+     * while (!stepStrategy_->isStepComplete()):
+     *    event = events.TryPop();
+     *    event.Run()
+     * future.Wait()
+     * stepStrategy_->onStepEnd();
+     */
     void gameLoop() {
         logger_->info("Game loop started");
         size_t stepCount = 0;
