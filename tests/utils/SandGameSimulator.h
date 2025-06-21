@@ -7,8 +7,8 @@
 namespace LifeGame::utils {
 
 /**
- * A simplified reference implementation of GameSimulator
- * Used for testing and validation of the real GameSimulator
+ * Простая и корректная реализация симулятора
+ * Используется для валидации реального симулятора
  */
 class SandGameSimulator {
     BitField currentField_;
