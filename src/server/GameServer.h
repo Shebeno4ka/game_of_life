@@ -127,7 +127,7 @@ class GameServer {
 
     // for testing
     std::vector<std::byte> getField() {
-        return simulator_->getStateData();
+        return simulator_->getSerializedField();
     }
 
    private:
@@ -140,7 +140,7 @@ class GameServer {
             simulator_->step();
             stepCount++;
 
-            auto currentState = simulator_->getStateData();
+            auto currentState = simulator_->getSerializedField();
             auto sendFuture = networkDriver_->sendToAllClients(std::move(currentState), sendTimeoutMs_);
 
             size_t eventsProcessed = 0;

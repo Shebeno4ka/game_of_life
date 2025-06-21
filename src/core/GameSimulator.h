@@ -7,7 +7,7 @@
 namespace LifeGame {
 
 /**
- * Чистый симулятор без логики игроков - только симуляция Conway's Game of Life
+ * Используется для симуляции игры "Жизнь"
  */
 class GameSimulator {
     BitField currentField_;
@@ -19,18 +19,15 @@ class GameSimulator {
     // Основной метод симуляции - выполняет один шаг
     void step();
 
-    // Применение изменений от клиентов (накапливаются до следующего step())
+    // Применение изменения от клиента
     void applySingleCellChange(uint32_t x, uint32_t y, bool alive);
 
-    // Получение состояния для сети
-    std::vector<std::byte> getStateData() const;
+    // Получение состояния для сети(копирует поле)
+    std::vector<std::byte> getSerializedField() const;
 
-    uint32_t getAliveCellCount() const;
-
+    uint32_t getAliveCellCount() const;  // для тестов
     void setInitialPattern(BitField pattern);
-
     void clearField();
-
    private:
     void performSimulationStep();
 

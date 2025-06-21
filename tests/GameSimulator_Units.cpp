@@ -149,14 +149,14 @@ TEST_F(GameSimulatorTest, StateDataConsistency) {
 
     utils::applyPatternToAll({{3, 3}, {4, 4}}, *simulator, *sandSimulator);
 
-    auto simulatorStateData = simulator->getStateData();
+    auto simulatorStateData = simulator->getSerializedField();
     auto referenceStateData = sandSimulator->getStateData();
 
     EXPECT_FALSE(simulatorStateData.empty());
     EXPECT_EQ(simulatorStateData, referenceStateData);
 
     // State data should be consistent across calls
-    auto simulatorStateData2 = simulator->getStateData();
+    auto simulatorStateData2 = simulator->getSerializedField();
     EXPECT_EQ(simulatorStateData.size(), simulatorStateData2.size());
     EXPECT_EQ(simulatorStateData, simulatorStateData2);
 }
@@ -192,7 +192,7 @@ TEST_F(GameSimulatorTest, ImplementationMatchesReference) {
         simulator->step();
         sandSimulator->step();
 
-        auto simulatorState = simulator->getStateData();
+        auto simulatorState = simulator->getSerializedField();
         auto referenceState = sandSimulator->getStateData();
 
         EXPECT_EQ(simulatorState, referenceState)

@@ -15,7 +15,7 @@ void GameSimulator::applySingleCellChange(uint32_t x, uint32_t y, bool alive) {
     currentField_.setAlive(x, y, alive);
 }
 
-std::vector<std::byte> GameSimulator::getStateData() const {
+std::vector<std::byte> GameSimulator::getSerializedField() const {
     return currentField_.serialize();
 }
 
