@@ -1,6 +1,8 @@
 #pragma once
 #include <future>
 #include <boost/asio.hpp>
+#include <linux/futex.h>
+#include <sys/syscall.h>
 
 // это костыль пиздец
 // UPD: даже хуже чем я думал
@@ -38,4 +40,16 @@ std::future<void> runAll(boost::asio::io_context& ioc, std::vector<boost::asio::
     }
 
     return future;
+}
+
+inline int futexWait(std::atomic<uint32_t>& value, int expected, const struct timespec* timeout = nullptr) {
+    return syscall(SYS_futex, reinterpret_cast<int*>(&value), FUTEX_WAIT, expected, timeout, nullptr, 0);
+}
+
+inline int futexWakeOne(std::atomic<uint32_t>& value) {
+    return syscall(SYS_futex, reinterpret_cast<int*>(&value), FUTEX_WAKE, 1, nullptr, nullptr, 0);
+}
+
+inline int futexWakeAll(std::atomic<uint32_t>& value) {
+    return syscall(SYS_futex, reinterpret_cast<int*>(&value), FUTEX_WAKE, INT_MAX, nullptr, nullptr, 0);
 }
