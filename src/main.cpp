@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     // Create and configure the client
     Client client(ioContext);
     std::atomic<int> counter{0};
-    client.setCallback([&counter](Client::Loger logger, std::vector<std::byte> data) {
+    client.setOnServerMessageCallback([&counter](Client::Loger logger, std::vector<std::byte> data) {
         counter.fetch_add(1);
         if (counter.load() % 15 == 0) {
             logger->info("Received {} response: \n{}", counter.load(), stringField(data));

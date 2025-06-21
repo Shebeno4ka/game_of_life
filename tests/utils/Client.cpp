@@ -10,7 +10,7 @@
 using namespace boost::asio;
 using namespace boost::beast;
 
-Client::Client(boost::asio::io_context& ioContext) 
+Client::Client(io_context& ioContext)
     : ioContext_(ioContext), resolver_(ioContext_), ws_(ioContext_), logger_(spdlog::get("Client")) {
     if (!logger_) {
         logger_ = spdlog::default_logger();
@@ -22,39 +22,7 @@ Client::~Client() {
 }
 
 void Client::connect(std::string address) {
-    using boost::asio::ip::tcp;
-    auto pos = address.find(':');
-    if (pos == std::string::npos) {
-        throw std::invalid_argument("Invalid address format");
-    }
-
-    std::string host = address.substr(0, pos);
-    std::string port = address.substr(pos + 1);
-
-    resolver_.async_resolve(host, port, [this, address](boost::system::error_code ec, auto results) {
-        if (ec) {
-            logger_->error("Resolve error: {}", ec.message());
-            return;
-        }
-
-        boost::asio::async_connect(ws_.next_layer(), results, [this, address](boost::system::error_code ec, const tcp::endpoint& endpoint) {
-            if (ec) {
-                logger_->error("Connect error: {}", ec.message());
-                return;
-            }
-
-            // В handshake нужно передавать имя хоста, а не IP
-            ws_.async_handshake(address, "/", [this, address](boost::system::error_code ec) {
-                if (ec) {
-                    logger_->error("Handshake error: {}", ec.message());
-                    return;
-                }
-
-                logger_->info("Connected to server at {}", address);
-                doRead(); // Start reading after connection
-            });
-    });
-});
+    handleResolve(std::move(address));
 }
 
 void Client::disconnect() {
@@ -88,7 +56,7 @@ void Client::send(std::vector<std::pair<uint32_t, uint32_t>> changes) {
     });
 }
 
-void Client::setCallback(OnMessageCallback cb) {
+void Client::setOnServerMessageCallback(OnMessageCallback cb) {
     callback_ = std::move(cb);
 }
 
@@ -109,6 +77,52 @@ void Client::doRead() {
         }
 
         buffer_.consume(bytes_transferred); // Clear the buffer
-        doRead(); // Continue reading
+        doRead();                           // Continue reading
     });
+}
+
+void Client::handleResolve(std::string address) {
+    using boost::asio::ip::tcp;
+    auto pos = address.find(':');
+    if (pos == std::string::npos) {
+        throw std::invalid_argument("Invalid address format");
+    }
+
+    std::string host = address.substr(0, pos);
+    std::string port = address.substr(pos + 1);
+    resolver_.async_resolve(host, port,
+        [this, address = std::move(address)](ErrorCode ec, auto results) {
+            if (ec) {
+                logger_->error("Resolve error: {}", ec.message());
+                return;
+            }
+            handleConnect(std::move(address), std::move(results));
+        }
+    );
+}
+
+void Client::handleConnect(std::string address, ResolveResults results) {
+    using ip::tcp;
+    async_connect(ws_.next_layer(), results,
+       [this, address = std::move(address)](ErrorCode ec, const tcp::endpoint& endpoint) {
+           if (ec) {
+               logger_->error("Connect error: {}", ec.message());
+               return;
+           }
+           handleHandshake(std::move(address));
+       }
+    );
+}
+
+void Client::handleHandshake(std::string address) {
+    ws_.async_handshake(address, "/",
+    [this, address=std::move(address)](ErrorCode ec) {
+            if (ec) {
+                logger_->error("Handshake error: {}", ec.message());
+                return;
+            }
+            logger_->info("Connected to server at {}", address);
+            doRead();
+        }
+    );
 }
