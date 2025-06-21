@@ -75,7 +75,7 @@ asio::awaitable<void> WebSocketServer::sendMessage(ConnectionId connectionId, Co
     }
 
     if (ecWrite) {
-        logger_->debug("Send failed for connection {}: {}", connectionId, ecWrite.message());
+        logger_->warn("Send failed for connection {}: {}", connectionId, ecWrite.message());
         std::scoped_lock lock(mutex_);
         connections_.erase(connectionId);
     }
@@ -95,6 +95,7 @@ std::future<void> WebSocketServer::sendToAllClients(std::vector<std::byte> data,
     return runAll(ioContext_, std::move(tasks), std::move(sharedResources));
 }
 
+// Асинхронно принимает новые подключения и запускает для них обработку сессий
 void WebSocketServer::acceptLoop() {
     acceptor_.async_accept([this](boost::system::error_code ec, tcp::socket socket) {
         if (!ec) {
@@ -108,7 +109,12 @@ void WebSocketServer::acceptLoop() {
         acceptLoop();
     });
 }
-
+/**
+ * Обрабатывает сессию одного клиента:
+ * Выполняет handshake, читает сообщения в цикле,
+ * вызывает коллбек для обработки сообщений,
+ * и удаляет подключение при закрытии или ошибке.
+ */
 asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
     ws.binary(true);
     boost::system::error_code acceptEc;
@@ -128,6 +134,7 @@ asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
     }
 
     for (;;) {
+        // Асинхронно считываем входящее сообщение
         boost::beast::flat_buffer buffer;
         boost::system::error_code ec;
         co_await ws.async_read(buffer, asio::redirect_error(asio::use_awaitable, ec));
@@ -138,6 +145,7 @@ asio::awaitable<void> WebSocketServer::handleSession(Connection ws) {
             break;
         }
 
+        // Преобразуем буфер в вектор байт, и вызываем callback
         auto ptr = static_cast<std::byte*>(buffer.data().data());
         std::vector<std::byte> data(ptr, ptr + buffer.size());
         logger_->debug("Received {} bytes from client {}", data.size(), connectionId);

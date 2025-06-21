@@ -21,13 +21,23 @@ namespace websocket = boost::beast::websocket;
 namespace asio = boost::asio;
 using namespace std::chrono_literals;
 
+/*
+ Класс WebSocketServer реализует многопользовательский WebSocket-сервер.
+
+ Методы:
+ - setMessageCallback: устанавливает обработчик входящих сообщений
+ - start / stop: запускает и останавливает сервер
+ - sendToAllClients: отправляет сообщение с таймаутом всем активным клиентам.
+    Возвращает std::future<void>, на котором можно дождаться, когда каждое сообщение
+    будет либо успешно доставлено, либо по нему сработает таймаут.
+*/
 class WebSocketServer {
     using MessageCallback = std::function<void(std::vector<CellChange>)>;
     using Connection = websocket::stream<tcp::socket>;
     using ConnectionId = uint64_t;
 
     asio::io_context ioContext_;
-    std::thread ioThread_;
+    std::thread ioThread_;  // Thread running ioContext_.run()
     tcp::acceptor acceptor_;
     ConnectionId nextConnectionId_;
     std::unordered_map<ConnectionId, Connection&> connections_; // from id to connection
@@ -38,12 +48,10 @@ class WebSocketServer {
    public:
     WebSocketServer(const std::string& ip, uint16_t port);
 
+    // NetworkDriver concept
     void setMessageCallback(MessageCallback cb);
-
     void start();
-
     void stop();
-
     std::future<void> sendToAllClients(std::vector<std::byte> data, std::chrono::milliseconds timeout);
 
    private:
