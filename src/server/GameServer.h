@@ -7,6 +7,7 @@
 #include "server/DriverConcepts.h"
 #include "core/BitField.h"
 #include "core/GameEvent.h"
+#include "utils/AsyncUtils.h"
 
 #include <atomic>
 #include <chrono>
@@ -21,28 +22,34 @@ namespace LifeGame {
 /**
  * Основной игровой сервер согласно заданному алгоритму:
  *
- * timer = SetTimer(n ms)
+ * stepStrategy_->onStepStart();
  * game_simulator.Step()
  * field = game_simulator().copy()
  * future = web_socket.SendAllAsync(field)
  *
- * while (timer):
+ * while (!stepStrategy_->isStepComplete()):
  *    event = events.TryPop();
  *    event.Run()
  * future.Wait()
+ * stepStrategy_->onStepEnd();
  */
 
 using namespace std::chrono_literals;
 
 template <NetworkDriver Driver, StepControlStrategy StepStrategy>
 class GameServer {
+    enum RunState {
+        Stoped = 1,
+        Running = 2
+    };
+
     std::unique_ptr<GameSimulator> simulator_;
     std::unique_ptr<Driver> networkDriver_;
     std::unique_ptr<StepStrategy> stepStrategy_;
     std::shared_ptr<spdlog::logger> logger_;
     MPSCQueue<GameEvent> events_;
     std::chrono::milliseconds sendTimeoutMs_;
-    std::atomic<bool> running_;
+    std::atomic<uint32_t> running_;
     std::thread gameMainThread_;
 
    public:
@@ -53,7 +60,7 @@ class GameServer {
           simulator_(std::move(simulator)),
           stepStrategy_(std::move(stepStrategy)),
           sendTimeoutMs_(sendTimeoutMs),
-          running_(false) {
+          running_(RunState::Stoped) {
         logger_ = spdlog::get("GameServer");
         if (!logger_) {
             logger_ = spdlog::default_logger();
@@ -78,31 +85,25 @@ class GameServer {
     GameServer& operator=(GameServer&&) = delete;
 
     void start() {
-        if (running_) {
+        if (running_.load() == RunState::Running) {
             logger_->warn("Attempted to start already running server");
             return;
         }
-        running_ = true;
+        running_.store(RunState::Running);
         logger_->info("Starting GameServer");
 
-        try {
-            networkDriver_->start();
-            gameMainThread_ = std::thread(&GameServer::gameLoop, this);
-            logger_->info("GameServer started successfully");
-        } catch (const std::exception& e) {
-            logger_->error("Failed to start GameServer: {}", e.what());
-            running_ = false;
-            throw;
-        }
+        networkDriver_->start();
+        gameMainThread_ = std::thread(&GameServer::gameLoop, this);
+        logger_->info("GameServer started successfully");
     }
 
     void stop() {
-        if (!running_) {
+        if (running_.load() == RunState::Stoped) {
             return;
         }
         logger_->info("Stopping GameServer");
 
-        running_.store(false);
+        running_.store(RunState::Stoped);
         events_.close();
         networkDriver_->stop();
         stepStrategy_->stop();
@@ -110,10 +111,18 @@ class GameServer {
         if (gameMainThread_.joinable()) {
             gameMainThread_.join();
         }
+        futexWakeAll(running_);
         logger_->info("GameServer stopped");
     }
+
+    void waitUntilStopped() {
+        while (running_.load() == RunState::Running) {
+            futexWait(running_, RunState::Running);
+        }
+    }
+
     bool isRunning() const {
-        return running_;
+        return running_.load() == RunState::Running;
     }
 
     void setInitialPattern(BitField pattern) {
@@ -135,7 +144,7 @@ class GameServer {
         logger_->info("Game loop started");
         size_t stepCount = 0;
 
-        while (running_) {
+        while (running_.load() == RunState::Running) {
             stepStrategy_->onStepStart();
             simulator_->step();
             stepCount++;
