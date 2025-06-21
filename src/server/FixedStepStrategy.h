@@ -5,7 +5,7 @@
 namespace LifeGame {
 
 /**
- * Ограничевает количество шагов до 1 в kStepDurationMs
+ * Стратегия при которой шаг симуляции выполняется каждые kStepDurationMs. (постоянный FPS)
  */
 template <uint64_t kStepDurationMs>
 class FixedStepStrategy {
@@ -13,6 +13,8 @@ class FixedStepStrategy {
     std::chrono::steady_clock::time_point stepStartTime_;
 
    public:
+
+    // StepControlStrategy concept
     void onStepStart() {
         stepStartTime_ = std::chrono::steady_clock::now();
     }
@@ -22,7 +24,6 @@ class FixedStepStrategy {
     }
 
     void onStepEnd() {}
-
     void stop() {}
 };
 
