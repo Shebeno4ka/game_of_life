@@ -7,9 +7,9 @@
 
 namespace LifeGame {
 
-/**
- * Оптимизированное битовое поле для хранения состояния игры "Жизнь"
- */
+/*
+ Битовое поле для хранения состояния игры "Жизнь"
+*/
 class BitField {
     uint32_t width_;
     uint32_t height_;
@@ -17,9 +17,9 @@ class BitField {
 
    public:
     explicit BitField(uint32_t width, uint32_t height);
-    BitField(const BitField& other); // Added copy constructor
+    BitField(const BitField& other);
     BitField(BitField&& other) noexcept;
-    BitField& operator=(const BitField& other); // Added copy assignment
+    BitField& operator=(const BitField& other);
     BitField& operator=(BitField&& other) noexcept;
     ~BitField();
 
@@ -36,14 +36,11 @@ class BitField {
     void toggleCell(uint32_t x, uint32_t y);
 
     std::vector<std::byte> serialize() const;
-
-    // Очистка поля
     void clear();
 
-    // Подсчет живых клеток в области (для многопоточной симуляции)
+    // Подсчет живых соседей
     uint8_t countNeighbors(uint32_t x, uint32_t y) const;
-
-    // Подсчёт общего количества живых клеток
+    // Подсчёт общего количества живых клеток(для тестов)
     uint32_t getAliveCellCount() const;
 
    private:
