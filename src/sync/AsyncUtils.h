@@ -2,7 +2,6 @@
 #include <future>
 #include <boost/asio.hpp>
 #include <linux/futex.h>
-#include <sys/syscall.h>
 
 // это костыль пиздец
 // UPD: даже хуже чем я думал

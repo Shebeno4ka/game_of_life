@@ -1,18 +1,16 @@
 #pragma once
 
 #include "FixedStepStrategy.h"
-
-#include <core/GameSimulator.h>
-#include <utils/MPSCQueue.h>
+#include "core/GameSimulator.h"
+#include "sync/MPSCQueue.h"
 #include "server/DriverConcepts.h"
 #include "core/BitField.h"
 #include "core/GameEvent.h"
-#include "utils/AsyncUtils.h"
+#include "sync/AsyncUtils.h"
 #include "utils/DebugUtils.h"
 
 #include <atomic>
 #include <chrono>
-#include <sstream>
 #include <thread>
 #include <vector>
 #include <utility>

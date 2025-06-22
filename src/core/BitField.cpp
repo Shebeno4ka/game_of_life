@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <stdexcept>
 
 namespace LifeGame {
 

@@ -1,13 +1,13 @@
+#include "server/GameServer.h"
+#include "config/Constants.h"
 #include "WebSocketServer.h"
-#include <utils/AsyncUtils.h>
+#include "sync/AsyncUtils.h"
+
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/steady_timer.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
-#include "server/GameServer.h"
-#include "utils/Constants.h"
-#include "utils/DebugUtils.h"
 
 using namespace network;
 

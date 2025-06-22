@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
-
 #include "BitField.h"
+#include "config/Constants.h"
+
+#include <vector>
 
 namespace LifeGame {
 

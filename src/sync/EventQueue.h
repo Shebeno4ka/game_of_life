@@ -1,4 +1,5 @@
 #pragma once
+
 #include "MPSCQueue.h"
 
 #include <future>

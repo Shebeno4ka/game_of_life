@@ -41,4 +41,4 @@ inline void setupLogging() {
 }
 
 
-} // namespace utils
+} // namespace config

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "server/GameServer.h"
+#include "core/GameEvent.h"
+
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -8,10 +11,6 @@
 #include <mutex>
 #include <chrono>
 #include <optional>
-
-#include "server/GameServer.h"
-#include "core/GameEvent.h"
-
 #include <spdlog/spdlog.h>
 
 namespace network {

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Constants.h"
-#include "core/GameEvent.h"
-
 #include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+#include "config/Constants.h"
+#include "core/GameEvent.h"
 
 inline std::string stringField(const std::vector<std::byte>& v) {
     constexpr int width = LifeGame::FIELD_WIDTH;

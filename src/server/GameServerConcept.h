@@ -1,13 +1,10 @@
 #pragma once
 
+#include "core/BitField.h"
+
 #include <concepts>
 #include <chrono>
 #include <memory>
-#include <future>
-#include <atomic>
-#include "core/GameSimulator.h"
-#include "core/BitField.h"
-#include "server/DriverConcepts.h"
 
 namespace LifeGame {
 
@@ -30,16 +27,6 @@ concept GameServerConcept = requires(T& server, BitField pattern, std::chrono::m
 
     // Конфигурация игрового поля
     { server.setInitialPattern(std::move(pattern)) } -> std::same_as<void>;
-
-    // Настройка сетевых параметров
-    { server.setSendTimeout(timeout) } -> std::same_as<void>;
-
-    // Требования к конструктору и деструктору
-    requires std::is_destructible_v<T>;
-    requires !std::is_copy_constructible_v<T>;
-    requires !std::is_copy_assignable_v<T>;
-    requires !std::is_move_constructible_v<T>;
-    requires !std::is_move_assignable_v<T>;
 };
 
 } // namespace LifeGame

@@ -1,9 +1,9 @@
 #include "server/GameServer.h"
 #include "network/WebSocketServer.h"
-#include "utils/LoggerSetup.h"
+#include "config/LoggerSetup.h"
 #include "core/GameSimulator.h"
 #include "server/FixedStepStrategy.h"
-#include "../tests/utils/Client.h"
+#include "../tests/mock/Client.h"
 #include "../tests/utils/SimulationPatterns.h"
 #include "utils/DebugUtils.h"
 

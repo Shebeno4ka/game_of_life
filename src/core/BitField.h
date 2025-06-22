@@ -3,8 +3,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "../utils/Constants.h"
-
 namespace LifeGame {
 
 /**

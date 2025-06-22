@@ -63,4 +63,4 @@ private:
     }
 };
 
-} // namespace LifeGame::utils
+} // namespace LifeGame::config

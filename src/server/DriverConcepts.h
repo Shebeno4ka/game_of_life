@@ -1,11 +1,12 @@
 #pragma once
 
+#include "core/GameEvent.h"
+
 #include <concepts>
 #include <future>
 #include <vector>
 #include <chrono>
 #include <functional>
-#include "core/GameEvent.h"
 
 namespace LifeGame {
 

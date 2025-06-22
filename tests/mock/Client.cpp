@@ -1,5 +1,4 @@
 #include "Client.h"
-
 #include "utils/DebugUtils.h"
 
 #include <boost/asio.hpp>

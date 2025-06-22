@@ -1,7 +1,6 @@
 #pragma once
 
-#include "utils/EventQueue.h"
-
+#include "sync/EventQueue.h"
 
 namespace LifeGame::utils  {
 

@@ -1,8 +1,9 @@
+#include "core/GameSimulator.h"
+
 #include <gtest/gtest.h>
 #include <chrono>
 #include <random>
 #include <cstdlib>
-#include "../src/core/GameSimulator.h"
 
 namespace LifeGame {
 

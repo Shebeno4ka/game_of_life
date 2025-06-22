@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-
 #include "GameSimulator.h"
+
+#include <vector>
 
 struct CellChange {
     uint32_t x, y;

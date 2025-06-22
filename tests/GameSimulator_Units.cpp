@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
 #include "core/GameSimulator.h"
-#include "core/BitField.h"
-#include "utils/SandGameSimulator.h"
+#include "mock/SandGameSimulator.h"
 #include "utils/SimulationPatterns.h"
+
+#include <gtest/gtest.h>
 
 namespace LifeGame {
 

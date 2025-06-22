@@ -1,6 +1,5 @@
 #include "EventQueue.h"
 
-
 bool LifeGame::EventQueue::trySetNextEvent() {
     auto result = promiseQueue_.tryPop();
     if (!result.has_value()) {

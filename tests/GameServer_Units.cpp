@@ -1,12 +1,12 @@
-#include <gtest/gtest.h>
 #include "server/GameServer.h"
-#include "utils/SandNetworkDriver.h"
-#include "utils/SandStepStrategy.h"
-#include "utils/SandGameSimulator.h"
+#include "mock/SandNetworkDriver.h"
+#include "mock/SandStepStrategy.h"
+#include "mock/SandGameSimulator.h"
 #include "core/BitField.h"
 #include "core/GameSimulator.h"
-#include "utils/LoggerSetup.h"
 #include "utils/SimulationPatterns.h"
+
+#include <gtest/gtest.h>
 
 using namespace LifeGame;
 using namespace std::chrono_literals;

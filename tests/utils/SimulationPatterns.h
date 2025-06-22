@@ -1,11 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <random>
 #include "core/GameSimulator.h"
 #include "core/BitField.h"
-#include "SandGameSimulator.h"
+#include "mock/SandGameSimulator.h"
 #include "core/GameEvent.h"
+
+#include <vector>
+#include <random>
 
 namespace LifeGame::utils {
 

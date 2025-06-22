@@ -16,23 +16,23 @@ set(SOURCES
     src/core/BitField.cpp
     src/core/GameSimulator.cpp
     src/network/WebSocketServer.cpp
-    src/utils/EventQueue.cpp
-    tests/utils/Client.cpp
+        src/sync/EventQueue.cpp
+        tests/mock/Client.cpp
 )
 
 # Заголовочные файлы
 set(HEADERS
     src/core/BitField.h
     src/core/GameSimulator.h
-    src/utils/MPSCQueue.h
+        src/sync/MPSCQueue.h
     src/server/GameServer.h
     src/network/WebSocketServer.h
-    src/utils/AsyncUtils.h
+        src/sync/AsyncUtils.h
     src/utils/Constants.h
     src/core/GameEvent.h
     src/utils/LoggerSetup.h
-    src/utils/EventQueue.h
-    tests/utils/Client.h
+        src/sync/EventQueue.h
+        tests/mock/Client.h
 )
 
 # Основное приложение
