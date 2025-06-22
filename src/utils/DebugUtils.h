@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "core/GameEvent.h"
 
 #include <cstddef>
 #include <iostream>
@@ -50,4 +51,12 @@ inline std::string bytesToBitString(const std::vector<std::byte>& message) {
     }
 
     return result;
+}
+
+inline std::string stringChanges(const std::vector<CellChange>& changes) {
+    std::stringstream ss;
+    for (auto [x, y, alive]: changes) {
+        ss << '{' << x << ',' << y << "}, ";
+    }
+    return ss.str();
 }

@@ -5,6 +5,7 @@
 #include "core/GameSimulator.h"
 #include "core/BitField.h"
 #include "SandGameSimulator.h"
+#include "core/GameEvent.h"
 
 namespace LifeGame::utils {
 
@@ -76,8 +77,7 @@ void applyPatternToAll(const std::vector<CellState>& pattern, Simulators&... sim
 }
 
 // Fill a BitField with random cells based on density
-inline void fillRandom(BitField& field, double density, uint32_t seed = 42) {
-    std::mt19937 gen(seed);
+inline void fillRandom(BitField& field, double density, std::mt19937& gen) {
     std::uniform_real_distribution<> dist(0.0, 1.0);
 
     for (uint32_t y = 0; y < field.height(); ++y) {
@@ -91,8 +91,7 @@ inline void fillRandom(BitField& field, double density, uint32_t seed = 42) {
 
 // Fill a simulator with random cells based on density
 template <typename SimulatorType>
-void fillRandom(SimulatorType& simulator, uint32_t width, uint32_t height, double density, uint32_t seed = 42) {
-    std::mt19937 gen(seed);
+void fillRandom(SimulatorType& simulator, uint32_t width, uint32_t height, double density, std::mt19937& gen) {
     std::uniform_real_distribution<> dist(0.0, 1.0);
 
     for (uint32_t y = 0; y < height; ++y) {
@@ -106,8 +105,7 @@ void fillRandom(SimulatorType& simulator, uint32_t width, uint32_t height, doubl
 
 // Fill multiple simulators with the same random pattern
 template <typename... Simulators>
-void fillRandomToAll(uint32_t width, uint32_t height, double density, uint32_t seed, Simulators&... simulators) {
-    std::mt19937 gen(seed);
+void fillRandomToAll(uint32_t width, uint32_t height, double density, std::mt19937& gen, Simulators&... simulators) {
     std::uniform_real_distribution<> dist(0.0, 1.0);
 
     for (uint32_t y = 0; y < height; ++y) {
@@ -118,6 +116,19 @@ void fillRandomToAll(uint32_t width, uint32_t height, double density, uint32_t s
             }
         }
     }
+}
+
+inline std::vector<CellChange> genRandomChanges(uint32_t width, uint32_t height, double density, std::mt19937& gen) {
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+    std::vector<CellChange> changes;
+    for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < width; ++x) {
+            if (dist(gen) < density) {
+                changes.push_back({x, y, true});
+            }
+        }
+    }
+    return changes;
 }
 
 } // namespace LifeGame::Testing

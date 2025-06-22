@@ -47,7 +47,10 @@ public:
         // Зарегистрировать симуляционные шаги.
         // Возвращает StepToken, который можно ждать в тесте.
         StepToken makeSimulatorSteps(uint32_t stepsCount) {  // TODO: rename to register
-            assert(stepsCount > 0);
+            if (stepsCount == 0) {
+                std::future<void> readyFuture = std::async(std::launch::deferred, [] {});
+                return StepToken(EventToken(std::move(readyFuture)));
+            }
             for (uint32_t i = 0; i < stepsCount - 1; ++i) {
                 strategy_->steps_.registerEvent();
             }
@@ -57,7 +60,10 @@ public:
         // Зарегистрировать пользовательские события.
         // Возвращает UserEventToken, который можно ждать в тесте.
         UserEventToken registerUserEvents(uint32_t eventsCount) {
-            assert(eventsCount > 0);
+            if (eventsCount == 0) {
+                std::future<void> readyFuture = std::async(std::launch::deferred, [] {});
+                return UserEventToken(EventToken(std::move(readyFuture)));
+            }
             for (uint32_t i = 0; i < eventsCount - 1; ++i) {
                 strategy_->userEvents_.registerEvent();
             }

@@ -8,6 +8,7 @@
 #include "core/BitField.h"
 #include "core/GameEvent.h"
 #include "utils/AsyncUtils.h"
+#include "utils/DebugUtils.h"
 
 #include <atomic>
 #include <chrono>

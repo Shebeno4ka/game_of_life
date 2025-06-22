@@ -5,17 +5,18 @@
 #include "utils/SandGameSimulator.h"
 #include "core/BitField.h"
 #include "core/GameSimulator.h"
+#include "utils/LoggerSetup.h"
 #include "utils/SimulationPatterns.h"
 
 using namespace LifeGame;
 using namespace std::chrono_literals;
 
 namespace LifeGame {
-
 class GameServerTest : public ::testing::Test {
 protected:
     uint32_t fieldWidth;
     uint32_t fieldHeight;
+    std::mt19937 gen{42};
     std::unique_ptr<utils::SandNetworkDriver> networkDriver;
     utils::SandNetworkDriver::Handle networkHandle;
     std::unique_ptr<utils::SandStepStrategy> stepStrategy;
@@ -60,6 +61,7 @@ protected:
             std::move(stepStrategy),
             100ms
         );
+
     }
 
     void startServerWithPattern(const std::vector<utils::CellState>& pattern) {
@@ -154,7 +156,7 @@ TEST_F(GameServerTest, ProcessesRandomField) {
     for (double density : densities) {
         initialize(100, 100); // Use 100x100 field dimensions for this test
         BitField randomField(fieldWidth, fieldHeight);
-        utils::fillRandom(randomField, density);
+        utils::fillRandom(randomField, density, gen);
 
         startServerWithPattern(randomField);
 
@@ -173,5 +175,58 @@ TEST_F(GameServerTest, ProcessesRandomField) {
         server->stop();
     }
 }
+
+TEST_F(GameServerTest, ProcessesRandomUserEvents) {
+    constexpr uint32_t kFieldWidth = 10;
+    constexpr uint32_t kFieldHeight = 10;
+    constexpr double kChangeDensity = 0.2;
+    constexpr uint32_t kTotalSteps = 100;
+    constexpr uint32_t kMaxUserEventsPerStep = 10;
+    constexpr double kMaxProcessRatio = 1.5;
+
+    TearDown();
+    initialize(kFieldWidth, kFieldHeight);
+    server->start();
+
+    uint32_t nextUnprocessedEventIndex = 0;
+    auto& allUserEvents = networkHandle.fromClientData();
+    std::uniform_real_distribution<double> realDist(0.0, 1.0);
+
+    for (uint32_t step = 0; step < kTotalSteps; ++step) {
+        // 1. Случайное количество пользователей отправляют события
+        auto eventBatchSize = static_cast<uint32_t>(realDist(gen) * kMaxUserEventsPerStep);
+        for (uint32_t i = 0; i < eventBatchSize; ++i) {
+            auto randomChanges = utils::genRandomChanges(kFieldWidth, kFieldHeight, kChangeDensity, gen);
+            networkHandle.sendToServer(randomChanges);
+        }
+
+        // 2. Определяем, сколько событий сервер должен обработать
+        auto unprocessedCount = static_cast<uint32_t>(allUserEvents.size() - nextUnprocessedEventIndex);
+        auto toProcessNow = static_cast<uint32_t>(unprocessedCount * realDist(gen) * kMaxProcessRatio);
+        toProcessNow = std::min(toProcessNow, unprocessedCount);
+
+        // 3. Сообщаем серверу, сколько событий обработать, и делаем шаг
+        stepHandle.registerUserEvents(toProcessNow);
+        makeStep();
+
+        // 4. Проверка актуального состояния поля
+        const auto& serverState = networkHandle.fromServerData().back();
+        const auto& simulatorState = sandSimulator->getStateData();
+
+        EXPECT_EQ(serverState.size(), simulatorState.size());
+        EXPECT_EQ(serverState, simulatorState);
+
+        // 5. Повторяем шаг на стороне симулятора вручную
+        for (uint32_t i = 0; i < toProcessNow; ++i) {
+            const auto& cellChanges = allUserEvents[nextUnprocessedEventIndex + i];
+            for (const auto& [x, y, alive] : cellChanges) {
+                sandSimulator->applySingleCellChange(x, y, alive);
+            }
+        }
+
+        nextUnprocessedEventIndex += toProcessNow;
+    }
+}
+
 
 }

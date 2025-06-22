@@ -11,6 +11,7 @@ protected:
     }
 
     std::unique_ptr<BitField> field;
+    std::mt19937 gen{42};
 };
 
 TEST_F(BitFieldTest, ConstructorInitialization) {
@@ -178,7 +179,7 @@ TEST_F(BitFieldTest, SmallField) {
 
 TEST_F(BitFieldTest, BitPackingCorrectness) {
     // Test that bit packing works correctly by setting many cells with random fill
-    utils::fillRandom(*field, 0.7, 42); // 70% density with seed 42
+    utils::fillRandom(*field, 0.7, gen); // 70% density with seed 42
     
     // Count how many cells are alive
     int aliveCount = 0;
