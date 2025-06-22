@@ -60,7 +60,7 @@ void Client::setOnServerMessageCallback(OnMessageCallback cb) {
 }
 
 void Client::doRead() {
-    ws_.async_read(buffer_, [this](boost::system::error_code ec, std::size_t bytes_transferred) {
+    ws_.async_read(buffer_, [this](boost::system::error_code ec, std::size_t bytes_transferred) mutable  {
         if (ec) {
             if (ec != websocket::error::closed) {
                 logger_->warn("Read error: {}", ec.message());
@@ -90,7 +90,7 @@ void Client::handleResolve(std::string address) {
     std::string host = address.substr(0, pos);
     std::string port = address.substr(pos + 1);
     resolver_.async_resolve(host, port,
-        [this, address = std::move(address)](ErrorCode ec, auto results) {
+        [this, address = std::move(address)](ErrorCode ec, auto results) mutable  {
             if (ec) {
                 logger_->error("Resolve error: {}", ec.message());
                 return;
@@ -103,7 +103,7 @@ void Client::handleResolve(std::string address) {
 void Client::handleConnect(std::string address, ResolveResults results) {
     using ip::tcp;
     async_connect(ws_.next_layer(), results,
-       [this, address = std::move(address)](ErrorCode ec, const tcp::endpoint& endpoint) {
+       [this, address = std::move(address)](ErrorCode ec, const tcp::endpoint& endpoint) mutable  {
            if (ec) {
                logger_->error("Connect error: {}", ec.message());
                return;
@@ -115,7 +115,7 @@ void Client::handleConnect(std::string address, ResolveResults results) {
 
 void Client::handleHandshake(std::string address) {
     ws_.async_handshake(address, "/",
-    [this, address=std::move(address)](ErrorCode ec) {
+    [this, address=std::move(address)](ErrorCode ec) mutable  {
             if (ec) {
                 logger_->error("Handshake error: {}", ec.message());
                 return;
