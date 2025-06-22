@@ -10,6 +10,8 @@
 /*
  Класс Client предназначен для тестирования:
  позволяет моделировать реальные подключения к серверу через WebSocket.
+
+ Перед уничтожением должен быть вызван disconnect, и завершён ioContext.run(), иначе UB
 */
 class Client {
 public:
@@ -47,4 +49,5 @@ private:
     Loger logger_;
     OnMessageCallback callback_;
     boost::beast::flat_buffer buffer_;
+    std::atomic<bool> isClosed_{true};
 };

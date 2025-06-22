@@ -17,7 +17,7 @@ Client::Client(io_context& ioContext)
 }
 
 Client::~Client() {
-    disconnect();
+    assert(isClosed_.load());
 }
 
 void Client::connect(std::string address) {
@@ -25,10 +25,14 @@ void Client::connect(std::string address) {
 }
 
 void Client::disconnect() {
+    if (isClosed_.load()) {
+        return;
+    }
     ws_.async_close(websocket::close_code::normal, [this](boost::system::error_code ec) {
         if (ec) {
             logger_->warn("Error during disconnect: {}", ec.message());
         }
+        isClosed_.store(true);
         logger_->info("Disconnected from server");
     });
 }
@@ -120,6 +124,7 @@ void Client::handleHandshake(std::string address) {
                 logger_->error("Handshake error: {}", ec.message());
                 return;
             }
+            isClosed_.store(false);
             logger_->info("Connected to server at {}", address);
             doRead();
         }
