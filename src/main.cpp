@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // Run the io_context in the main thread
     std::thread thread([&ioContext]() {ioContext.run();});
 
-    while (true) {}
+    gameServer.waitUntilStopped();
 
     gameServer.stop();
 

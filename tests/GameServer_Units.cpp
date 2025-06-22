@@ -61,6 +61,26 @@ protected:
             100ms
         );
     }
+
+    void startServerWithPattern(const std::vector<utils::CellState>& pattern) {
+        BitField initialPattern(10, 10);
+        utils::applyPattern(initialPattern, pattern);
+
+        server->setInitialPattern(initialPattern);
+        sandSimulator->setInitialPattern(initialPattern);
+        server->start();
+    }
+
+    void startServerWithPattern(const BitField& field) {
+        server->setInitialPattern(field);
+        sandSimulator->setInitialPattern(field);
+        server->start();
+    }
+
+    void makeStep() {
+        stepHandle.makeSimulatorSteps(1).wait();
+        sandSimulator->step();
+    }
 };
 
 TEST_F(GameServerTest, StartAndStop) {
@@ -92,20 +112,12 @@ TEST_F(GameServerTest, ProcessClientMessages) {
 
 
     EXPECT_EQ(expectedField.serialize(), server->getField());
-
-    server->stop();
 }
 
 TEST_F(GameServerTest, SendsUpdatesToClients) {
-    BitField initialPattern(10, 10);
-    utils::applyPattern(initialPattern, utils::Patterns::glider(2, 2));
+    startServerWithPattern(utils::Patterns::glider(2, 2));
 
-    server->setInitialPattern(initialPattern);
-    sandSimulator->setInitialPattern(initialPattern);
-    server->start();
-
-    stepHandle.makeSimulatorSteps(1).wait();
-    sandSimulator->step();
+    makeStep();
     
     // Check that server sent updates to clients
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
@@ -114,21 +126,12 @@ TEST_F(GameServerTest, SendsUpdatesToClients) {
     std::vector<std::byte> expectedData = sandSimulator->getStateData();
     const auto& actualData = networkHandle.fromServerData().back();
     EXPECT_EQ(actualData, expectedData);
-    
-    server->stop();
 }
 
 TEST_F(GameServerTest, ProcessesBlinkerPattern) {
-    BitField initialPattern(10, 10);
-    utils::applyPattern(initialPattern, utils::Patterns::blinker(4, 4));
+    startServerWithPattern(utils::Patterns::blinker(4, 4));
 
-    server->setInitialPattern(initialPattern);
-    sandSimulator->setInitialPattern(initialPattern);
-
-    server->start();
-
-    stepHandle.makeSimulatorSteps(1).wait();
-    sandSimulator->step();
+    makeStep();
     
     // Check first state
     ASSERT_GE(networkHandle.fromServerData().size(), 1);
@@ -137,16 +140,13 @@ TEST_F(GameServerTest, ProcessesBlinkerPattern) {
     EXPECT_EQ(firstUpdate.size(), expectedFirstUpdate.size());
     
     // Second step
-    stepHandle.makeSimulatorSteps(1).wait();
-    sandSimulator->step();
+    makeStep();
     
     // Check second state (should be back to original orientation)
     ASSERT_GE(networkHandle.fromServerData().size(), 2);
     auto secondUpdate = networkHandle.fromServerData().back();
     auto expectedSecondUpdate = sandSimulator->getStateData();
     EXPECT_EQ(secondUpdate.size(), expectedSecondUpdate.size());
-    
-    server->stop();
 }
 
 TEST_F(GameServerTest, ProcessesRandomField) {
@@ -156,10 +156,7 @@ TEST_F(GameServerTest, ProcessesRandomField) {
         BitField randomField(fieldWidth, fieldHeight);
         utils::fillRandom(randomField, density);
 
-        server->setInitialPattern(randomField);
-        sandSimulator->setInitialPattern(randomField);
-
-        server->start();
+        startServerWithPattern(randomField);
 
         for (int step = 0; step < 100; ++step) {
             stepHandle.makeSimulatorSteps(1).wait();
