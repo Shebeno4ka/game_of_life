@@ -18,9 +18,6 @@ protected:
 };
 
 TEST_F(GameSimulatorTest, EmptyFieldStaysEmpty) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     EXPECT_EQ(simulator->getAliveCellCount(), 0);
 
     simulator->step();
@@ -31,9 +28,6 @@ TEST_F(GameSimulatorTest, EmptyFieldStaysEmpty) {
 }
 
 TEST_F(GameSimulatorTest, SingleCellDies) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     utils::applyPatternToAll({{5, 5}}, *simulator, *sandSimulator);
 
     simulator->step();
@@ -44,9 +38,6 @@ TEST_F(GameSimulatorTest, SingleCellDies) {
 }
 
 TEST_F(GameSimulatorTest, BlockPatternStable) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     // 2x2 block pattern
     utils::applyPatternToAll(utils::Patterns::block(4, 4), *simulator, *sandSimulator);
     uint32_t initialCount = simulator->getAliveCellCount();
@@ -60,9 +51,6 @@ TEST_F(GameSimulatorTest, BlockPatternStable) {
 }
 
 TEST_F(GameSimulatorTest, BlinkerPatternOscillates) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     utils::applyPatternToAll(utils::Patterns::blinker(5, 5), *simulator, *sandSimulator);
 
     EXPECT_EQ(simulator->getAliveCellCount(), 3);
@@ -81,9 +69,6 @@ TEST_F(GameSimulatorTest, BlinkerPatternOscillates) {
 }
 
 TEST_F(GameSimulatorTest, MultipleStepsConsistency) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     std::vector<utils::CellState> customPattern = {
         {3, 3}, {3, 4}, {3, 5}, {4, 3}, {5, 4}
     };
@@ -103,9 +88,6 @@ TEST_F(GameSimulatorTest, MultipleStepsConsistency) {
 }
 
 TEST_F(GameSimulatorTest, ApplyChangesAccumulation) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     std::vector<utils::CellState> changes = {
         {2, 2}, {2, 3}, {2, 4}, {3, 2}
     };
@@ -122,9 +104,6 @@ TEST_F(GameSimulatorTest, ApplyChangesAccumulation) {
 }
 
 TEST_F(GameSimulatorTest, EdgeCells) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     std::vector<utils::CellState> edgeCells = {
         {0, 0},  // Top-left corner
         {9, 9},  // Bottom-right corner
@@ -144,9 +123,6 @@ TEST_F(GameSimulatorTest, EdgeCells) {
 }
 
 TEST_F(GameSimulatorTest, StateDataConsistency) {
-    simulator->clearField();
-    sandSimulator->clearField();
-
     utils::applyPatternToAll({{3, 3}, {4, 4}}, *simulator, *sandSimulator);
 
     auto simulatorStateData = simulator->getSerializedField();
@@ -162,9 +138,7 @@ TEST_F(GameSimulatorTest, StateDataConsistency) {
 }
 
 TEST_F(GameSimulatorTest, ClearField) {
-    // Add some cells
-    simulator->clearField();
-    sandSimulator->clearField();
+    // add some cells
     utils::applyPatternToAll({{1, 1}, {2, 2}, {3, 3}}, *simulator, *sandSimulator);
 
     EXPECT_GT(simulator->getAliveCellCount(), 0);
@@ -178,14 +152,10 @@ TEST_F(GameSimulatorTest, ClearField) {
 
 TEST_F(GameSimulatorTest, ImplementationMatchesReference) {
     // Initialize with a complex pattern
-    BitField initialPattern(10, 10);
     std::vector<utils::CellState> complexPattern = {
         {2, 2}, {3, 2}, {2, 3}, {3, 3}, {4, 4}, {5, 4}, {6, 4}
     };
-    utils::applyPattern(initialPattern, complexPattern);
-
-    simulator->setInitialPattern(initialPattern);
-    sandSimulator->setInitialPattern(initialPattern);
+    utils::applyPatternToAll(complexPattern, *simulator, *sandSimulator);
 
     // Run multiple steps and ensure both implementations match
     for (int i = 0; i < 20; ++i) {
