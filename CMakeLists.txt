@@ -17,7 +17,7 @@ set(SOURCES
     src/core/GameSimulator.cpp
     src/network/WebSocketServer.cpp
         src/sync/EventQueue.cpp
-        tests/mock/Client.cpp
+        src/client/Client.cpp
 )
 
 # Заголовочные файлы
@@ -28,11 +28,11 @@ set(HEADERS
     src/server/GameServer.h
     src/network/WebSocketServer.h
         src/sync/AsyncUtils.h
-    src/utils/Constants.h
+    src/config/Constants.h
     src/core/GameEvent.h
-    src/utils/LoggerSetup.h
+    src/config/LoggerSetup.h
         src/sync/EventQueue.h
-        tests/mock/Client.h
+        src/client/Client.h
 )
 
 # Основное приложение
@@ -65,10 +65,19 @@ if(GTest_FOUND)
         tests/GameServer_Units.cpp
         tests/GameSimulator_Performance.cpp
     )
+
+    set(TEST_HEADERS
+        ${HEADERS}
+        tests/mock/SandGameSimulator.h
+        tests/mock/SandNetworkDriver.h
+        tests/mock/SandStepStrategy.h
+        tests/utils/SimulationPatterns.h
+    )
     
-    add_executable(${PROJECT_NAME}_tests ${TEST_SOURCES} ${HEADERS})
+    add_executable(${PROJECT_NAME}_tests ${TEST_SOURCES} ${TEST_HEADERS})
     target_include_directories(${PROJECT_NAME}_tests PRIVATE ${Boost_INCLUDE_DIRS})
     target_include_directories(${PROJECT_NAME}_tests PRIVATE /usr/local/include)
+    target_include_directories(${PROJECT_NAME}_tests PRIVATE tests)
     target_link_libraries(${PROJECT_NAME}_tests 
         ${Boost_LIBRARIES} 
         spdlog::spdlog 
