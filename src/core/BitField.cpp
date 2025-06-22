@@ -131,8 +131,7 @@ uint8_t BitField::countNeighbors(uint32_t x, uint32_t y) const {
 }
 
 void BitField::allocateAlignedMemory() {
-    // Выравнивание памяти для SIMD операций (32 байта для AVX2)
-    data_ = static_cast<uint8_t*>(std::aligned_alloc(32, fieldBytes()));
+    data_ = static_cast<uint8_t*>(::operator new(fieldBytes(), std::align_val_t{kCacheLineSize}));
     if (!data_) {
         throw std::bad_alloc();
     }
@@ -140,7 +139,7 @@ void BitField::allocateAlignedMemory() {
 
 void BitField::deallocateMemory() {
     if (data_) {
-        std::free(data_);
+        ::operator delete(data_, std::align_val_t{kCacheLineSize});
         data_ = nullptr;
     }
 }

@@ -9,6 +9,7 @@ namespace LifeGame {
  * Битовое поле для хранения состояния игры "Жизнь"
  */
 class BitField {
+    static constexpr std::size_t kCacheLineSize = 64;
     uint32_t width_;
     uint32_t height_;
     uint8_t* data_;
