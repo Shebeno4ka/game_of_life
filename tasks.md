@@ -1,4 +1,2 @@
-1) переписать client. чтобы без вложенных лямб, по сути просто приватный метод для каждого шага сделать
-2) добавить тесты на WebServer используя Client
-3) изменить нэймспэйсы
-4) добавить в gameServer метод waitStop. готорый будет засыпать на futex, до тех пор пока сервер не будет остановлен(чтобы не писать while (true))
+1) изменить нэймспэйсы
+2) переписать TEST_F(GameServerTest, ProcessesRandomField), используя TEST_P. аналогично GameServerTest, ProcessesRandomUserEvents
