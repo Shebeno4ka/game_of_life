@@ -9,7 +9,7 @@ template <uint32_t EveryNthRandomClient>
 class MixedClientGenerator {
 public:
     MixedClientGenerator(
-        std::chrono::seconds genInterval,
+        std::chrono::milliseconds genInterval,
         uint32_t width,
         uint32_t height,
         double density,
@@ -25,11 +25,6 @@ public:
     std::unique_ptr<IClient> next(boost::asio::io_context& ioContext) {
         std::this_thread::sleep_for(genInterval_);
         ++counter_;
-
-        if (counter_ == 1) {
-            return std::make_unique<FieldPrinterClient<20>>(ioContext);
-        }
-
         static constexpr uint64_t seedsCnt = 500;
         if (counter_ % EveryNthRandomClient == 0) {
             // Стабильные сиды для воспроизводимости
@@ -54,7 +49,7 @@ public:
     }
 
 private:
-    std::chrono::seconds genInterval_;
+    std::chrono::milliseconds genInterval_;
     uint32_t width_;
     uint32_t height_;
     double density_;

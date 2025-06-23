@@ -38,7 +38,7 @@ public:
 
         std::future<void> benchmarkStopEvent;
         auto monitorClient = std::make_unique<LatencyMonitoringClient>(
-            ioContexts_.front(), std::chrono::milliseconds(700), benchmarkStopEvent);
+            ioContexts_.front(), std::chrono::milliseconds(120), benchmarkStopEvent);
         logger_->info("Created monitoring client: {}", monitorClient->name());
         monitorClient->start(address_);
         activeClients_.emplace_back(std::move(monitorClient));
@@ -73,6 +73,10 @@ public:
         for (auto& thread : ioThreads_) {
             if (thread.joinable())
                 thread.join();
+        }
+
+        for (auto& client : activeClients_) {
+            client->stop();
         }
 
         logger_->info("Benchmark fully stopped");
@@ -121,12 +125,12 @@ void startBench(uint32_t fieldSize) {
     int port = 8080;
     auto ws_server_ptr = std::make_unique<network::WebSocketServer>(ip, port);
     auto gameSimulator = std::make_unique<LifeGame::GameSimulator>(fieldSize, fieldSize);
-    auto stepStrategy = std::make_unique<LifeGame::FixedStepStrategy<500>>();
+    auto stepStrategy = std::make_unique<LifeGame::FixedStepStrategy<100>>();
     LifeGame::GameServer gameServer(std::move(ws_server_ptr), std::move(gameSimulator), std::move(stepStrategy));
 
     gameServer.start();
 
-    MixedClientGenerator<10> generator(std::chrono::seconds(1), fieldSize, fieldSize, 0.3, std::chrono::seconds(5));
+    MixedClientGenerator<10> generator(std::chrono::milliseconds(100), fieldSize, fieldSize, 0.05, std::chrono::seconds(5));
     Benchmark benchmark("0.0.0.0:8080", generator, 1);
     auto f = benchmark.start();
     f.wait();
@@ -137,7 +141,7 @@ void startBench(uint32_t fieldSize) {
 
 int main() {
     utils::setupLogging();
-    startBench(10);
+    startBench(50);
     return 0;
 }
 
