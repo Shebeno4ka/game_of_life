@@ -105,6 +105,9 @@ void WebSocketServer::acceptLoop() {
             asio::co_spawn(ioContext_, handleSession(std::move(ws)), asio::detached);
         } else {
             logger_->error("Accept failed: {}", ec.message());
+            boost::system::error_code ignored_ec;
+            socket.shutdown(tcp::socket::shutdown_both, ignored_ec);
+            socket.close(ignored_ec);
         }
         acceptLoop();
     });
