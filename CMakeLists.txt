@@ -38,7 +38,7 @@ set(HEADERS
 # Основное приложение
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} src/main.cpp)
 
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost REQUIRED COMPONENTS system thread random)
 find_package(spdlog REQUIRED)
 find_package(GTest REQUIRED)
 
@@ -90,3 +90,29 @@ if(GTest_FOUND)
 else()
     message(STATUS "Google Test не найден, тесты отключены")
 endif()
+
+set(BENCHMARK_HEADERS
+        ${HEADERS}
+        benchmarks/clients/IClient.h
+        benchmarks/clients/LatencyMonitoringClient.h
+        benchmarks/clients/PassiveClient.h
+        benchmarks/clients/RandomUpdatesClient.h
+        benchmarks/clients/FieldPrinterClient.h
+        benchmarks/generators/IClientGenerator.h
+        benchmarks/generators/PassiveClientGenerator.h
+        benchmarks/generators/MixedClientGenerator.h
+)
+
+set(BENCHMARK_SOURCES
+        ${SOURCES}
+        benchmarks/benchmarks.cpp
+)
+
+add_executable(${PROJECT_NAME}_benchmarks ${BENCHMARK_SOURCES} ${BENCHMARK_HEADERS})
+target_include_directories(${PROJECT_NAME}_benchmarks PRIVATE ${Boost_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME}_benchmarks PRIVATE /usr/local/include)
+target_include_directories(${PROJECT_NAME}_benchmarks PRIVATE benchmarks)
+target_link_libraries(${PROJECT_NAME}_benchmarks
+        ${Boost_LIBRARIES}
+        spdlog::spdlog
+)

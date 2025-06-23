@@ -179,8 +179,14 @@ class GameServer {
 
     void onClientMessage(std::vector<CellChange> changes) {
         logger_->debug("Processed client message with {} changes", changes.size());
+        // std::stringstream ss;
+        // for (auto [x, y, alive]: changes) {
+        //     ss << '{' << x << ' ' << y << '}';
+        // }
+        // logger_->debug("Changes: {}", ss.str());
         GameEvent event(std::move(changes));
-        events_.push(std::move(event));
+        auto size = events_.push(std::move(event));
+        logger_->trace("Events cnt = {}", size);
     }
 };
 

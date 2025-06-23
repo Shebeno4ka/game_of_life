@@ -27,12 +27,15 @@ public:
         close();
     }
 
-    void push(T item) {
+    uint32_t push(T item) {
+        uint32_t size{0};
         std::lock_guard lock(mutex_);
         if (!closed_.load()) {
             queue_.push(std::move(item));
+            size = queue_.size();
             condition_.notify_one();
         }
+        return size;
     }
 
     void waitWhileEmpty() {

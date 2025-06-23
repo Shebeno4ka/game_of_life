@@ -17,7 +17,8 @@ Client::Client(io_context& ioContext)
 }
 
 Client::~Client() {
-    assert(isClosed_.load());
+    assert(isClosed_.load() && "Client: соединение не было остановлено перед уничтожением");
+    assert(ioContext_.stopped() && "Client: io_context не был остановлен перед уничтожением");
 }
 
 void Client::connect(std::string address) {
@@ -38,25 +39,30 @@ void Client::disconnect() {
 }
 
 void Client::send(std::vector<std::pair<uint32_t, uint32_t>> changes) {
-    std::vector<std::byte> message;
+    auto message = new std::vector<std::byte>;
+    message->reserve(changes.size() * sizeof(uint32_t) * 2);
     for (const auto& [x, y] : changes) {
-        for (int i = 3; i >= 0; --i) { // Send x in little-endian order
-            message.push_back(static_cast<std::byte>((x >> (i * 8)) & 0xFF));
+        for (int i = 0; i <= 3; ++i) { // little-endian
+            message->push_back(static_cast<std::byte>((x >> (i * 8)) & 0xFF));
         }
-        for (int i = 3; i >= 0; --i) { // Send y in little-endian order
-            message.push_back(static_cast<std::byte>((y >> (i * 8)) & 0xFF));
+        for (int i = 0; i <= 3; ++i) { // little-endian
+            message->push_back(static_cast<std::byte>((y >> (i * 8)) & 0xFF));
         }
     }
 
-    logger_->debug("Send updates: {}", bytesToBitString((message)));
+    logger_->debug("Send updates: {}", bytesToBitString(*message));
 
-    ws_.async_write(buffer(message), [this, changes](boost::system::error_code ec, std::size_t bytes_transferred) {
-        if (ec) {
-            logger_->error("Write error: {}", ec.message());
-            return;
+    ws_.async_write(
+        boost::asio::buffer(*message),
+        [this, changes = std::move(changes), message](boost::system::error_code ec, std::size_t bytes_transferred) mutable {
+            delete message;
+            if (ec) {
+                logger_->error("Write error: {}", ec.message());
+                return;
+            }
+            logger_->info("Sent {} changes to server", changes.size());
         }
-        logger_->info("Sent {} changes to server", changes.size());
-    });
+    );
 }
 
 void Client::setOnServerMessageCallback(OnMessageCallback cb) {
@@ -76,7 +82,7 @@ void Client::doRead() {
         std::vector<std::byte> data(ptr, ptr + buffer_.size());
 
         if (callback_) {
-            callback_(logger_, std::move(data));
+            callback_(std::move(data));
         }
 
         buffer_.consume(bytes_transferred); // Clear the buffer

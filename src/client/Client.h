@@ -16,7 +16,7 @@
 class Client {
 public:
     using Loger = std::shared_ptr<spdlog::logger>;
-    using OnMessageCallback = std::function<void(Loger, std::vector<std::byte>)>;
+    using OnMessageCallback = std::function<void(std::vector<std::byte>)>;
 
     explicit Client(boost::asio::io_context& ioContext);
     ~Client();

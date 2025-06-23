@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <ranges>
 
 #include "config/Constants.h"
 #include "core/GameEvent.h"
@@ -39,7 +40,7 @@ inline std::string bytesToBitString(const std::vector<std::byte>& message) {
     std::string result;
     int bitCount = 0;
 
-    for (std::byte b : message) {
+    for (std::byte b : message | std::views::reverse) {
         uint8_t value = std::to_integer<uint8_t>(b);
         for (int i = 7; i >= 0; --i) { // big-endian: старшие биты сначала
             result += ((value >> i) & 1) ? '1' : '0';
