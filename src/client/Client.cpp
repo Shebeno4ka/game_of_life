@@ -40,6 +40,7 @@ void Client::disconnect() {
 
 void Client::send(std::vector<std::pair<uint32_t, uint32_t>> changes) {
     auto message = new std::vector<std::byte>;
+    std::unique_ptr<std::vector<std::byte>> guard(message);
     message->reserve(changes.size() * sizeof(uint32_t) * 2);
     for (const auto& [x, y] : changes) {
         for (int i = 0; i <= 3; ++i) { // little-endian
@@ -54,8 +55,7 @@ void Client::send(std::vector<std::pair<uint32_t, uint32_t>> changes) {
 
     ws_.async_write(
         boost::asio::buffer(*message),
-        [this, changes = std::move(changes), message](boost::system::error_code ec, std::size_t bytes_transferred) mutable {
-            delete message;
+        [this, changes = std::move(changes), g = std::move(guard)](boost::system::error_code ec, std::size_t bytes_transferred) mutable {
             if (ec) {
                 logger_->error("Write error: {}", ec.message());
                 return;
